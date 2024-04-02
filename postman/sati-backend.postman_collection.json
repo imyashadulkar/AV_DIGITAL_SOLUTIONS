@@ -1,0 +1,235 @@
+{
+	"info": {
+		"_postman_id": "427f77ff-4784-49b8-b1ba-6df6e4f32dc6",
+		"name": "sati-backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "25804259"
+	},
+	"item": [
+		{
+			"name": "Admin Routes",
+			"item": [
+				{
+					"name": "User Routes",
+					"item": [
+						{
+							"name": "Get All Users",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Cookie",
+										"value": "{{cookie}}",
+										"type": "default"
+									}
+								],
+								"url": {
+									"raw": "{{host}}/v1/admin/get-all-users",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"v1",
+										"admin",
+										"get-all-users"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get User By ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "cookie",
+										"value": "{{cookie}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{host}}/v1/admin/get-user-by-id/5248f2fc-de60-4798-a07d-5dfc63d5c62e",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"v1",
+										"admin",
+										"get-user-by-id",
+										"5248f2fc-de60-4798-a07d-5dfc63d5c62e"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Login Routes",
+					"item": [
+						{
+							"name": "Get Admin Login Code",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\":\"admin@projectabs.com\",\r\n    \"password\":\"Bca@12345\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{host}}/v1/admin/get-admin-login-code",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"v1",
+										"admin",
+										"get-admin-login-code"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Admin Login With Code",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\":\"admin@projectabs.com\",\r\n    \"password\":\"Bca@12345\",\r\n    \"code\":\"852292\"\r\n\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{host}}/v1/admin/admin-login-with-code",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"v1",
+										"admin",
+										"admin-login-with-code"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "College Data",
+			"item": [
+				{
+					"name": "postCollegeData",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"collegeName\": \" Mumbai College\",\r\n    \"collegeImage\": \"College.com\",\r\n    \"awayFromCollege\": \"5 miles\",\r\n    \"scholarship\": true,\r\n    \"dormitoryRoom\": {\r\n        \"bedType\": \"twin\",\r\n        \"bathroomType\": \"shared\"\r\n    },\r\n    \"fees\": 10000,\r\n    \"rating\": 4.5,\r\n    \"numberOfReviews\": 20,\r\n    \"validity\": \"2024-04-01\",\r\n    \"numberOfMembersAllowed\": 500\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/v1/module/post-college-data",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"v1",
+								"module",
+								"post-college-data"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getCollegeData",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/v1/module/get-college-data",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"v1",
+								"module",
+								"get-college-data"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Ping Server",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/v1/ping",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"v1",
+						"ping"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "cookie",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "host",
+			"value": "http://localhost:3204/sati-backend"
+		}
+	]
+}
