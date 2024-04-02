@@ -1,5 +1,5 @@
 import express from "express";
-import { AUTH_ROUTES, MODULE_ROUTES } from "../helpers/constants.js";
+import { MODULE_ROUTES } from "../helpers/constants.js";
 import { verifyToken } from "../middleware/auth.js";
 import { successResponse } from "../middleware/successResponse.js";
 import { postCollegeData, getCollegeData } from "../controllers/collegedata.js";

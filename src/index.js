@@ -6,7 +6,6 @@ import cookieParser from "cookie-parser"
 
 // Import local modules
 import allRoutes from "./routes/index.js"
-import { getCookieOptions } from "./helpers/authHelper.js"
 import logger from "./helpers/logger.js"
 
 // Import Environment Variables
@@ -47,7 +46,8 @@ app.use((err, req, res, next) => {
   // Check if the error is related to clearing the cookie
   // if (!err.skipCookieClearance) {
   if (err.clearCookies) {
-    res.clearCookie("jwt", getCookieOptions("logout"))
+    // res.clearCookie("jwt", getCookieOptions("logout"))
+    console.log("getCookieOptions");
   }
   logger.error(err.message, err?.meta)
   // Set Status code based error type

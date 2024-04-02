@@ -1,18 +1,5 @@
 import logger from "../helpers/logger.js";
 
-const getObjectSizeInKB = (obj) => {
-  // Convert the object to a JSON string
-  const jsonString = JSON.stringify(obj);
-
-  // Calculate the size of the JSON string in bytes
-  const sizeInBytes = new TextEncoder().encode(jsonString).length;
-
-  // Convert bytes to kilobytes
-  const sizeInKB = sizeInBytes / 1024;
-
-  return Number(sizeInKB.toFixed(0));
-};
-
 const requestLogger = (req, res, next) => {
   const start = Date.now();
   const { password, confirmPassword, newPassword, ...body } = req.body;
