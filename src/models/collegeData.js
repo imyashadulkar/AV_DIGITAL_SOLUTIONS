@@ -3,15 +3,15 @@ import mongoose from "mongoose";
 const collegeDetailsCardSchema = new mongoose.Schema({
   collegeName: {
     type: String,
-    required: true,
+    required: false,
   },
   collegeImage: {
     type: String,
-    required: true,
+    required: false,
   },
   awayFromCollege: {
     type: String,
-    required: true,
+    required: false,
   },
   scholarship: {
     type: Boolean,
@@ -29,7 +29,7 @@ const collegeDetailsCardSchema = new mongoose.Schema({
   },
   fees: {
     type: Number,
-    required: true,
+    required: false,
   },
   rating: {
     type: Number,
@@ -41,11 +41,11 @@ const collegeDetailsCardSchema = new mongoose.Schema({
   },
   validity: {
     type: Date,
-    required: true,
+    required: false,
   },
   numberOfMembersAllowed: {
     type: Number,
-    required: true,
+    required: false,
   },
 });
 

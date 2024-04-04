@@ -14,6 +14,9 @@ const baseEnv = {
   JWT_SECRET: process.env.JWT_SECRET,
   JWT_EXPIRATION_IN_MINS: process.env.JWT_EXPIRATION_IN_MINS,
   VERIFICATION_CODE_EXPIRE_IN_MINS: process.env.VERIFICATION_CODE_EXPIRE_IN_MINS,
+  CLOUD_NAME:  process.env.CLOUD_NAME,
+  CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
+  CLOUDINARY_API_SECRET:  process.env.CLOUDINARY_API_SECRET
 };
 
 const getSecrectsAndVariablesFromENV = () => {
@@ -42,30 +45,30 @@ const getSecrectsAndVariablesFromENV = () => {
   return { secrets, variables };
 };
 
-// const getSecrectsAndVariablesFromServer = async () => {
-//   const CONFIG_API_URL = process.env.CONFIG_API_URL;
-//   const CONFIG_API_ENDPOINT = process.env.CONFIG_API_ENDPOINT;
-//   const url = `${CONFIG_API_URL}/${CONFIG_API_ENDPOINT}`;
-//   const headers = { "Content-Type": "application/json" };
-//   const payload = {
-//     id: `${process.env.APP_ID}-${process.env.ENV}`,
-//     env: process.env.ENV,
-//     token: process.env.CONFIG_API_TOKEN
-//   };
+const getSecrectsAndVariablesFromServer = async () => {
+  const CONFIG_API_URL = process.env.CONFIG_API_URL;
+  const CONFIG_API_ENDPOINT = process.env.CONFIG_API_ENDPOINT;
+  const url = `${CONFIG_API_URL}/${CONFIG_API_ENDPOINT}`;
+  const headers = { "Content-Type": "application/json" };
+  const payload = {
+    id: `${process.env.APP_ID}-${process.env.ENV}`,
+    env: process.env.ENV,
+    token: process.env.CONFIG_API_TOKEN
+  };
 
-//   const resData = (await post(url, payload, headers)) || {};
-//   const { secrets, variables } = resData;
+  const resData = (await post(url, payload, headers)) || {};
+  const { secrets, variables } = resData;
 
-//   secrets.MONGODB_URL =
-//     baseEnv.ENV === "prod" ? secrets.PROD_MONGODB_URL : secrets.DEV_MONGODB_URL;
+  secrets.MONGODB_URL =
+    baseEnv.ENV === "prod" ? secrets.PROD_MONGODB_URL : secrets.DEV_MONGODB_URL;
 
-//   variables.ALLOWED_ORIGINS =
-//     baseEnv.ENV === "prod"
-//       ? variables.PROD_ALLOWED_ORIGINS
-//       : variables.DEV_ALLOWED_ORIGINS;
+  variables.ALLOWED_ORIGINS =
+    baseEnv.ENV === "prod"
+      ? variables.PROD_ALLOWED_ORIGINS
+      : variables.DEV_ALLOWED_ORIGINS;
 
-//   return { secrets, variables };
-// };
+  return { secrets, variables };
+};
 
 const loadEnvFromServer = process.env.LOAD_ENV_FROM_SERVER === "true";
 

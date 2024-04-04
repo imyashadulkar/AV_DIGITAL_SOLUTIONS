@@ -11,6 +11,9 @@ dependencies:
   bcryptjs:
     specifier: ^2.4.3
     version: 2.4.3
+  cloudinary:
+    specifier: ^2.1.0
+    version: 2.1.0
   cookie-parser:
     specifier: ^1.4.6
     version: 1.4.6
@@ -26,6 +29,9 @@ dependencies:
   express:
     specifier: ^4.18.2
     version: 4.18.2
+  express-fileupload:
+    specifier: ^1.5.0
+    version: 1.5.0
   express-list-endpoints:
     specifier: ^6.0.0
     version: 6.0.0
@@ -1607,6 +1613,14 @@ packages:
       wrap-ansi: 7.0.0
     dev: true
 
+  /cloudinary@2.1.0:
+    resolution: {integrity: sha512-v7ywNaPHoM8N8ZuWieWK5tENIgB+9X4QhRaJHfHefd/Q7ZTzppLa8GX7IJMsF5mdQGL2TD2RbM8RZ+rrnsfP5w==}
+    engines: {node: '>=9'}
+    dependencies:
+      lodash: 4.17.21
+      q: 1.5.1
+    dev: false
+
   /co@4.6.0:
     resolution: {integrity: sha512-QVb0dM5HvG+uaxitm8wONl7jltx8dqhfU33DcqtOZcLSVIKSDDLDi7+0LbAKiyI8hD9u42m2YxXSkMGWThaecQ==}
     engines: {iojs: '>= 1.0.0', node: '>= 0.12.0'}
@@ -2543,6 +2557,13 @@ packages:
       jest-message-util: 29.7.0
       jest-util: 29.7.0
     dev: true
+
+  /express-fileupload@1.5.0:
+    resolution: {integrity: sha512-jSW3w9evqM37VWkEPkL2Ck5wUo2a8qa03MH+Ou/0ZSTpNlQFBvSLjU12k2nYcHhaMPv4JVvv6+Ac1OuLgUZb7w==}
+    engines: {node: '>=12.0.0'}
+    dependencies:
+      busboy: 1.6.0
+    dev: false
 
   /express-list-endpoints@6.0.0:
     resolution: {integrity: sha512-1I30bSVego+AU/eSsX/bV2xrOXW5tFhsuXZp7wZd9396bAAxH7KHaAwLXQYra0Aw33xA67HmNiceGf2SOvXaLg==}
@@ -4530,6 +4551,11 @@ packages:
   /pure-rand@6.1.0:
     resolution: {integrity: sha512-bVWawvoZoBYpp6yIoQtQXHZjmz35RSVHnUOTefl8Vcjr8snTPY1wnpSPMWekcFwbxI6gtmT7rSYPFvz71ldiOA==}
     dev: true
+
+  /q@1.5.1:
+    resolution: {integrity: sha512-kV/CThkXo6xyFEZUugw/+pIOywXcDbFYgSct5cT3gqlbkBE1SJdwy6UQoZvodiWF/ckQLZyDE/Bu1M6gVu5lVw==}
+    engines: {node: '>=0.6.0', teleport: '>=0.2.0'}
+    dev: false
 
   /qs@6.11.0:
     resolution: {integrity: sha512-MvjoMCJwEarSbUYk5O+nmoSzSutSsTwF85zcHPQ9OrlFoZOYIjaqBAJIqIXjptyD5vThxGq52Xu/MaJzRkIk4Q==}

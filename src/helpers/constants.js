@@ -2,12 +2,12 @@ export const CONST_STRINGS = {
   COLLEGE_DATA_POSTED_SUCCESSFULLY: "college Data posted Successfully",
   COLLEGE_DATA_NOT_FOUND: "college Data Not Found",
   COLLEGE_DATA_UPDATED_SUCCESSFULLY: "College Data Updated Successfully",
-  COLLEGE_DATA_RETRIEVED_SUCCESSFULLY:"",
+  COLLEGE_DATA_RETRIEVED_SUCCESSFULLY:"Colleg Data Retrieved Successfully",
   
   STATUS: "Status",
 
   SERVER_RUNNING_MESSAGE:
-    "Server is running",
+    "Server is running Last commit 12:35",
   MISSING_REQUIRED_INPUTS: "Request is missing required inputs",
   
 };
@@ -32,7 +32,7 @@ export const BASE_ROUTES = {
 
 
 export const MODULE_ROUTES = {
- GET_COLLEGE_DATA:"/get-college-data",
+ GET_COLLEGE_DATA:"/get-college-data/:sortBy?/:sortOrder?/:limit?/:filterBy?",
  POST_COLLEGE_DATA:"/post-college-data"
 };
 
