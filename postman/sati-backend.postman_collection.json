@@ -3,7 +3,8 @@
 		"_postman_id": "427f77ff-4784-49b8-b1ba-6df6e4f32dc6",
 		"name": "sati-backend",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "25804259"
+		"_exporter_id": "25804259",
+		"_collection_link": "https://www.postman.com/orange-resonance-595066/workspace/sati-world/collection/25804259-427f77ff-4784-49b8-b1ba-6df6e4f32dc6?action=share&source=collection_link&creator=25804259"
 	},
 	"item": [
 		{
@@ -133,17 +134,35 @@
 			"item": [
 				{
 					"name": "postCollegeData",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"collegeName\": \" Mumbai College\",\r\n    \"collegeImage\": \"College.com\",\r\n    \"awayFromCollege\": \"5 miles\",\r\n    \"scholarship\": true,\r\n    \"dormitoryRoom\": {\r\n        \"bedType\": \"twin\",\r\n        \"bathroomType\": \"shared\"\r\n    },\r\n    \"fees\": 10000,\r\n    \"rating\": 4.5,\r\n    \"numberOfReviews\": 20,\r\n    \"validity\": \"2024-04-01\",\r\n    \"numberOfMembersAllowed\": 500\r\n}\r\n",
-							"options": {
-								"raw": {
-									"language": "json"
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "collegeImage",
+									"type": "file",
+									"src": "/C:/Users/Admin/Desktop/Demo/IMG_4112.JPG"
+								},
+								{
+									"key": "collegeName",
+									"value": "AP SHAH ",
+									"type": "text"
 								}
-							}
+							]
 						},
 						"url": {
 							"raw": "{{host}}/v1/module/post-college-data",
@@ -165,7 +184,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{host}}/v1/module/get-college-data",
+							"raw": "{{host}}/v1/module/get-college-data?sortBy=collegeName&limit=1",
 							"host": [
 								"{{host}}"
 							],
@@ -173,6 +192,21 @@
 								"v1",
 								"module",
 								"get-college-data"
+							],
+							"query": [
+								{
+									"key": "collegeName",
+									"value": null,
+									"disabled": true
+								},
+								{
+									"key": "sortBy",
+									"value": "collegeName"
+								},
+								{
+									"key": "limit",
+									"value": "1"
+								}
 							]
 						}
 					},
@@ -223,13 +257,9 @@
 	],
 	"variable": [
 		{
-			"key": "cookie",
-			"value": "",
-			"type": "string"
-		},
-		{
 			"key": "host",
-			"value": "http://localhost:3204/sati-backend"
+			"value": "http://localhost:3204/sati-backend",
+			"type": "string"
 		}
 	]
 }
