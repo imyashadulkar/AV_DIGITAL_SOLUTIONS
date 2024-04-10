@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-
+import { User } from "../models/AuthUser.js";
 import { CONST_STRINGS, TYPES } from "./constants.js";
 import { ENV_VAR } from "./env.js";
 

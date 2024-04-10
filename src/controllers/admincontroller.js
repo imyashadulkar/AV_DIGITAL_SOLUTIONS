@@ -6,14 +6,12 @@ import {
   generateJwtToken,
   getCookieOptions,
   validateEmail,
-  validateUser
+  validateUser,
 } from "../helpers/authHelper.js";
 // import { sendEmail } from "../helpers/awsSESHelper.js";
 import { CONST_STRINGS, TYPES } from "../helpers/constants.js";
 import { ENV_VAR } from "../helpers/env.js";
-import {
-  AdminUser,
-} from "../models/index.js";
+import { AdminUser, User } from "../models/index.js";
 
 export const getAdminLoginCode = async (req, res, next) => {
   try {
@@ -52,53 +50,54 @@ export const getAdminLoginCode = async (req, res, next) => {
       code: generateCode(),
       createdAt: new Date(),
       attempts: 0,
-      verified: false
+      verified: false,
     };
 
-    // TODO : Format Email template
-    const recipientEmail = [email];
-    const origin = req.get("Origin");
-    // const recipientEmail = ["info@psgbs.com"];
-    const senderEmail = "do-not-reply@psgbs.com";
-    const emailSubject = "One-Time Password (OTP) for Assign by Skill account";
-    const emailMessage = `Dear User,
-    
-        Your OTP One-Time Password (OTP) : ${emailVerification.code}
-        
-        Please enter this OTP to login to admin portal.
-        
-        If you didn't request this OTP, please ignore this email. Your account's security is important to us, and we take any unauthorized access seriously.
-        
-        If you have any questions or need assistance, please feel free to contact us at info@psgbs.com.
-                
-        Best regards,
-        Assign by Skill
-        www.psgbs.com/abs`;
 
-    try {
-      await sendEmail(
-        origin,
-        emailSubject,
-        emailMessage,
-        senderEmail,
-        recipientEmail,
-        []
-      );
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error(error);
-    }
+    // // TODO : Format Email template
+    // const recipientEmail = [email];
+    // const origin = req.get("Origin");
+    // // const recipientEmail = ["info@psgbs.com"];
+    // const senderEmail = "do-not-reply@psgbs.com";
+    // const emailSubject = "One-Time Password (OTP) for Assign by Skill account";
+    // const emailMessage = `Dear User,
+
+    //     Your OTP One-Time Password (OTP) : ${emailVerification.code}
+
+    //     Please enter this OTP to login to admin portal.
+
+    //     If you didn't request this OTP, please ignore this email. Your account's security is important to us, and we take any unauthorized access seriously.
+
+    //     If you have any questions or need assistance, please feel free to contact us at info@psgbs.com.
+
+    //     Best regards,
+    //     Assign by Skill
+    //     www.psgbs.com/abs`;
+
+    // try {
+    //   await sendEmail(
+    //     origin,
+    //     emailSubject,
+    //     emailMessage,
+    //     senderEmail,
+    //     recipientEmail,
+    //     []
+    //   );
+    // } catch (error) {
+    //   // eslint-disable-next-line no-console
+    //   console.error(error);
+    // }
 
     adminUser.emailVerification = emailVerification;
     await adminUser.save();
     const responseMessage = CONST_STRINGS.ADMIN_LOGIN_CODE_SENT;
     const responseData = {
-      ...(ENV_VAR.SEND_CODE ? { code: emailVerification.code } : {})
+      OTP: emailVerification.code
     };
     req.data = {
       statuscode: 200,
       responseData: responseData || {},
-      responseMessage: responseMessage || ""
+      responseMessage: responseMessage || "",
     };
     next();
   } catch (err) {
@@ -159,13 +158,13 @@ export const adminLoginWithCode = async (req, res, next) => {
     const responseData = {
       userId,
       email,
-      role
+      role,
     };
 
     req.data = {
       statuscode: 200,
       responseData,
-      responseMessage: CONST_STRINGS.USER_LOGGED_IN_SUCCESSFULLY
+      responseMessage: CONST_STRINGS.USER_LOGGED_IN_SUCCESSFULLY,
     };
     next();
   } catch (err) {
@@ -212,13 +211,13 @@ export const loginWithEmailPasswordAdmin = async (req, res, next) => {
 
     const responseData = {
       userId,
-      email
+      email,
     };
 
     req.data = {
       statuscode: 200,
       responseData,
-      responseMessage: CONST_STRINGS.USER_LOGGED_IN_SUCCESSFULLY
+      responseMessage: CONST_STRINGS.USER_LOGGED_IN_SUCCESSFULLY,
     };
     next();
   } catch (err) {
@@ -240,38 +239,20 @@ export const getAllUsers = async (req, res, next) => {
       createdAt,
       emailVerification,
       logins,
-      isBlocked
+      isBlocked,
     } of users) {
       if (!emailVerification.verified) {
         unRegisteredUsers.push({ userId, email, createdAt });
         continue;
       }
 
-      const organization = await Organization.findOne({ userId });
-      const license = await License.findOne({ userId });
-
-      const licenseData = {
-        validity: license?.currentValidity,
-        workstations: license?.workstations,
-        shifts: license?.shifts,
-        orderId: license?.orderId,
-        approvedBy: license?.approvedBy,
-        approverRemarks: license?.approverRemarks
-      };
 
       const userObject = {
         userId,
         email,
         isBlocked: isBlocked || false,
-        isActive: license?.isActive || false,
-        allowToChangeTimeZone: license?.allowToChangeTimeZone || false,
         registeredOn: emailVerification.verifiedAt,
         lastLoginAt: logins ? logins[logins.length - 1] : null,
-        organizationData: {
-          organizationName: organization?.organizationName,
-          organizationContact: organization?.organizationContact
-        },
-        licenseData
       };
 
       registeredUsers.push(userObject);
@@ -281,18 +262,18 @@ export const getAllUsers = async (req, res, next) => {
     const responseData = {
       registeredUsers: {
         count: registeredUsers.length,
-        users: registeredUsers
+        users: registeredUsers,
       },
       unRegisteredUsers: {
         count: unRegisteredUsers.length,
-        users: unRegisteredUsers
-      }
+        users: unRegisteredUsers,
+      },
     };
 
     req.data = {
       statuscode: 200,
       responseData: responseData || {},
-      responseMessage: responseMessage || ""
+      responseMessage: responseMessage || "",
     };
 
     next();
@@ -322,7 +303,7 @@ export const getUserById = async (req, res, next) => {
       userData = {
         userId: user.userId,
         email: user.email,
-        isBlocked: user.isBlocked
+        isBlocked: user.isBlocked,
       };
     } else {
       const skillObject = await Skill.findOne({ userId });
@@ -361,7 +342,7 @@ export const getUserById = async (req, res, next) => {
         approvedBy: license?.approvedBy,
         approverRemarks: license?.approverRemarks,
         validityLastUpdatedAt: license?.validityLastUpdatedAt,
-        previousValidityMap: license?.previousValidityMap
+        previousValidityMap: license?.previousValidityMap,
       };
 
       userData = {
@@ -383,21 +364,21 @@ export const getUserById = async (req, res, next) => {
         workstationcount: workstations.length || 0,
         skillsCount: {
           activeCount: Object.keys(skillinfo.activeObject).length,
-          frozenCount: Object.keys(skillinfo.inactiveObject).length
+          frozenCount: Object.keys(skillinfo.inactiveObject).length,
         },
         Assignment: {
-          assignmentCount: assignment.length || 0
+          assignmentCount: assignment.length || 0,
         },
         Product: {
           activeCount: Object.keys(productinfo.activeObject).length,
-          frozenCount: Object.keys(productinfo.inactiveObject).length
+          frozenCount: Object.keys(productinfo.inactiveObject).length,
         },
         Employee: {
           activeCount: Object.keys(employeeinfo.activeObject).length,
-          frozenCount: Object.keys(employeeinfo.inactiveObject).length
+          frozenCount: Object.keys(employeeinfo.inactiveObject).length,
         },
         lineCount,
-        shiftCount
+        shiftCount,
       };
     }
 
@@ -407,7 +388,7 @@ export const getUserById = async (req, res, next) => {
     req.data = {
       statuscode: 200,
       responseData: responseData || {},
-      responseMessage: responseMessage || ""
+      responseMessage: responseMessage || "",
     };
     next();
   } catch (err) {
@@ -419,7 +400,7 @@ export const getUserById = async (req, res, next) => {
 export const setLicenseDataById = async (req, res, next) => {
   try {
     req.meta = {
-      endpoint: "setLicenseDataById"
+      endpoint: "setLicenseDataById",
     };
     const {
       endUserId,
@@ -428,7 +409,7 @@ export const setLicenseDataById = async (req, res, next) => {
       shifts,
       approvedBy,
       approverRemarks,
-      orderId
+      orderId,
     } = req.body;
 
     if (
@@ -456,7 +437,7 @@ export const setLicenseDataById = async (req, res, next) => {
         approverRemarks: license.approverRemarks,
         orderId: license.orderId,
         workstations: license.workstations,
-        shifts: license.shifts
+        shifts: license.shifts,
       };
       const currentMapSize = license.previousValidityMap.size + 1;
       license.previousValidityMap.set(`LV${currentMapSize}`, previousValidity);
@@ -475,13 +456,13 @@ export const setLicenseDataById = async (req, res, next) => {
 
     await license.save();
     const responseData = {
-      licenseData: license
+      licenseData: license,
     };
 
     req.data = {
       statuscode: 200,
       responseData,
-      responseMessage: CONST_STRINGS.SET_LICENSE_DETAILS_SUCCESS
+      responseMessage: CONST_STRINGS.SET_LICENSE_DETAILS_SUCCESS,
     };
     next();
   } catch (err) {
@@ -504,13 +485,13 @@ export const getAllUsersLicenseData = async (req, res, next) => {
       approverRemarks: license.approverRemarks,
       orderId: license.orderId,
       workstations: license.workstations,
-      shifts: license.shifts
+      shifts: license.shifts,
     }));
 
     req.data = {
       statuscode: 200,
       responseData: responseData || [],
-      responseMessage: CONST_STRINGS.GET_ALL_USERS_SUCCESS
+      responseMessage: CONST_STRINGS.GET_ALL_USERS_SUCCESS,
     };
 
     next();
@@ -523,7 +504,7 @@ export const getAllUsersLicenseData = async (req, res, next) => {
 export const getUserLicenseDetailById = async (req, res, next) => {
   try {
     req.meta = {
-      endpoint: "getUserLicenseDetailById"
+      endpoint: "getUserLicenseDetailById",
     };
 
     const { userId: endUserId } = req.params;
@@ -537,13 +518,13 @@ export const getUserLicenseDetailById = async (req, res, next) => {
       validityLastUpdatedAt: license?.validityLastUpdatedAt,
       previousValidity: license?.previousValidityMap || {},
       approvedBy: license?.approvedBy,
-      approverRemarks: license?.approverRemarks
+      approverRemarks: license?.approverRemarks,
     };
 
     req.data = {
       statuscode: 200,
       responseData: responseData || {},
-      responseMessage: CONST_STRINGS.GET_USER_DETAIL_SUCCESS
+      responseMessage: CONST_STRINGS.GET_USER_DETAIL_SUCCESS,
     };
 
     next();
@@ -612,7 +593,7 @@ export const updateUserStatus = async (req, res, next) => {
     req.data = {
       statuscode: 200,
       responseData,
-      responseMessage: CONST_STRINGS.UPDATE_USER_STATUS_SUCCESS
+      responseMessage: CONST_STRINGS.UPDATE_USER_STATUS_SUCCESS,
     };
     next();
   } catch (err) {
@@ -636,13 +617,13 @@ export const getAllUserLicence = async (req, res, next) => {
       shifts: user?.shifts,
       approvedBy: user?.approvedBy,
       orderedId: user?.orderId,
-      approverRemarks: user?.approverRemarks
+      approverRemarks: user?.approverRemarks,
     }));
 
     req.data = {
       statuscode: 200,
       responseData: responseData || [],
-      responseMessage: CONST_STRINGS.GET_ALL_USERS_SUCCESS
+      responseMessage: CONST_STRINGS.GET_ALL_USERS_SUCCESS,
     };
 
     next();
@@ -650,7 +631,7 @@ export const getAllUserLicence = async (req, res, next) => {
     req.data = {
       statuscode: 500,
       responseData: [],
-      responseMessage: CONST_STRINGS.GET_ALL_USERS_ERROR
+      responseMessage: CONST_STRINGS.GET_ALL_USERS_ERROR,
     };
     req.err = err;
     next(err);
@@ -693,7 +674,7 @@ export const updateLicenseStatus = async (req, res, next) => {
     req.data = {
       statuscode: 200,
       responseData: licenceModel,
-      responseMessage: CONST_STRINGS.UPDATE_LICENSE_STATUS_SUCCESS
+      responseMessage: CONST_STRINGS.UPDATE_LICENSE_STATUS_SUCCESS,
     };
 
     next();
@@ -713,12 +694,12 @@ export const logoutAdmin = async (req, res, next) => {
     res.clearCookie("jwt", getCookieOptions("logout"));
     const responseMessage = CONST_STRINGS.USER_LOGOUT_SUCCESSFULL;
     const responseData = {
-      userId
+      userId,
     };
     req.data = {
       statuscode: 200,
       responseData: responseData || {},
-      responseMessage: responseMessage || ""
+      responseMessage: responseMessage || "",
     };
 
     next();
