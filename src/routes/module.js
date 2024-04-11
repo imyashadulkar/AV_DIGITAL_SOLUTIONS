@@ -7,7 +7,6 @@ import {
   getCollegeData,
   deleteCollegeData,
 } from "../controllers/collegedata.js";
-import { cloudware } from "../middleware/cloudinary_middleware.js";
 import { addBlog, deleteBlogPost, getBlog } from "../controllers/blog.js";
 import { addTestimonial } from "../controllers/testimonialcontroller.js";
 
@@ -34,18 +33,21 @@ router.delete(
 );
 
 // Blog Controllers
+
 router.post(
   MODULE_ROUTES.ADD_BLOG_DATA,
   verifyToken,
   addBlog,
   successResponse
 );
+
 router.delete(
   MODULE_ROUTES.DELETE_BLOG,
   verifyToken,
   deleteBlogPost,
   successResponse
 );
+
 router.get(
   MODULE_ROUTES.GET_BLOG,
   verifyToken,
@@ -53,6 +55,7 @@ router.get(
   getBlog,
   successResponse
 );
+
 //Testimonial 
 router.post(
   MODULE_ROUTES.ADD_TESTIMONIAL_DATA,

@@ -12,12 +12,13 @@ import {
   validateEmail,
   validatePassword,
   validateToken,
-  validateUser
+  validateUser,
 } from "../helpers/authHelper.js";
 // import { sendEmail } from "../helpers/awsSESHelper.js";
-import { CONST_STRINGS, TYPES, AUTH_ROUTES } from "../helpers/constants.js";
+import { CONST_STRINGS, TYPES } from "../helpers/constants.js";
 import { ENV_VAR } from "../helpers/env.js";
 import { AdminUser, User } from "../models/index.js";
+import sendEmail from "../middleware/sendemail.js";
 
 // Create a middleware function that verifies the token and sends back the user information
 export const validateTokenResponse = async (req, res, next) => {
@@ -33,20 +34,20 @@ export const validateTokenResponse = async (req, res, next) => {
         email,
         role,
         subUserId,
-        isAuthUser
+        isAuthUser,
       };
       req.data = {
         statuscode: 200,
         responseData: responseData || {},
         responseMessage: responseMessage || "",
-        meta: validToken.data || {}
+        meta: validToken.data || {},
       };
 
       next();
     } else {
       res.status(200).json({
         success: false,
-        error: validToken.error
+        error: validToken.error,
       });
     }
   } catch (err) {
@@ -101,15 +102,15 @@ export const validateTokenResponse = async (req, res, next) => {
 //     const emailMessage = `Dear User,
 
 //     We're excited to welcome you to Assign by Skill! Thank you for your interest in registering with us. To complete your registration, please use the following One-Time Password (OTP) : ${emailVerification.code}
-    
+
 //     Please enter this OTP on our registration page to verify your email address and complete the registration process.
-    
+
 //     If you didn't request this OTP, please ignore this email. Your account's security is important to us, and we take any unauthorized access seriously.
-    
+
 //     If you have any questions or need assistance, please feel free to contact us at info@psgbs.com.
-    
+
 //     We're thrilled to have you as a part of our community and look forward to serving you.
-    
+
 //     Best regards,
 //     Assign by Skill
 //     www.psgbs.com/abs`;
@@ -155,218 +156,219 @@ export const validateTokenResponse = async (req, res, next) => {
 
 export const getRegisterCode = async (req, res, next) => {
   try {
-    const { email: _email, password, confirmPassword } = req.body
+    const { email: _email, password, confirmPassword } = req.body;
 
     if (!_email || !password || !confirmPassword) {
-      throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS)
+      throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS);
     }
 
-    const email = validateEmail(_email)
-
+    const email = validateEmail(_email);
     const user = await validateUser(
       email,
       "email",
       { email },
       TYPES.EMAIL_DOES_NOT_EXISTS_OR_NOT_VERIFIED
-    )
+    );
 
-    validatePassword(password, confirmPassword)
-
+    validatePassword(password, confirmPassword);
     const users = await User.find();
 
     const shortCodes = users
-    .map((user) => Number(user?.shortCode?.split("ABSL")?.[1]))
-    .filter((value) => !isNaN(value));
+      .map((user) => Number(user?.shortCode?.split("ABSL")?.[1]))
+      .filter((value) => !isNaN(value));
 
-let nextShortCode;
+    let nextShortCode;
 
-if (shortCodes.length > 0) {
-    nextShortCode = Math.max(...shortCodes) + 1;
-} else {
-    nextShortCode = 1; // or any starting value you prefer
-}
+    if (shortCodes.length > 0) {
+      nextShortCode = Math.max(...shortCodes) + 1;
+    } else {
+      nextShortCode = 1;
+    }
 
-console.log({ nextShortCode });
-
-const userId = user ? user.userId : uuidv4();
-const shortCode = `ABSL${nextShortCode}`;
-console.log(shortCode);
-const hashedPassword = await hashPassword(password);
-
-
+    const userId = user ? user.userId : uuidv4();
+    const shortCode = `ABSL${nextShortCode}`;
+    const hashedPassword = await hashPassword(password);
+  
     const emailVerification = {
       code: generateCode(),
       createdAt: new Date(),
       attempts: 0,
-      verified: false
-    }
-    // TODO
-    // Send the code to the user's email
-    // Add your code to send the code via email
+      verified: false,
+    };
 
+    const OTP = emailVerification.code;
+    const emailData = {
+      to: email,
+      subject: "OTP Verification",
+      body: {
+        name: "Razzaq Shikalgar",
+        intro: "Welcome to Your Product! Here is your OTP: " + OTP,
+        outro:
+          "This OTP code is valid for 5 minutes. If you didn't request this OTP, please ignore this email.",
+      },
+    };
+
+    sendEmail(emailData);
+
+    
     await User.findOneAndUpdate(
       { email, userId },
       {
         $set: {
           password: hashedPassword,
           emailVerification,
-          shortCode
-        }
+          shortCode,
+        },
       },
       { upsert: true, new: true }
-    )
+    );
 
-    // Return the response with user information and JWT token
-    const responseMessage = CONST_STRINGS.USER_REGISTER_CODE_CREATED
+    const responseMessage = CONST_STRINGS.USER_REGISTER_CODE_CREATED;
     const responseData = {
       userId,
       email,
-      code: emailVerification.code
-    }
-    const meta = { userId, email }
+      code: emailVerification.code,
+    };
+    const meta = { userId, email };
     req.data = {
       statuscode: 200,
       responseData: responseData || {},
       responseMessage: responseMessage || "",
-      meta: meta || {}
-    }
-    next()
+      meta: meta || {},
+    };
+    next();
   } catch (err) {
-    next(err)
+    next(err);
   }
-}
+};
 
 export const resendRegisterCode = async (req, res, next) => {
   try {
-    const { email: _email } = req.body
+    const { email: _email } = req.body;
 
     if (!_email) {
-      throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS)
+      throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS);
     }
 
-    const email = validateEmail(_email)
+    const email = validateEmail(_email);
 
     const user = await validateUser(
       email,
       "email",
       { email },
       TYPES.EMAIL_EXISTS_AND_NOT_VERIFIED
-    )
+    );
 
-    const { userId, emailVerification } = user
+    const { userId, emailVerification } = user;
 
-    emailVerification.code = generateCode()
-    emailVerification.createdAt = new Date()
-    emailVerification.attempts = 0
-    emailVerification.verified = false
+    emailVerification.code = generateCode();
+    emailVerification.createdAt = new Date();
+    emailVerification.attempts = 0;
+    emailVerification.verified = false;
 
-    await user.save()
+    await user.save();
 
-    // TODO
-    // Send the code to the user's email
-    // Add your code to send the code via email
-    const responseMessage = CONST_STRINGS.VERIFICATION_CODE_RESENT_SUCCESSFULLY
-    const responseData = { userId, email, code: emailVerification.code }
-    const meta = { email }
+    const responseMessage = CONST_STRINGS.VERIFICATION_CODE_RESENT_SUCCESSFULLY;
+    const responseData = { userId, email, code: emailVerification.code };
+    const meta = { email };
 
     req.data = {
       statuscode: 200,
       responseData: responseData || {},
       responseMessage: responseMessage || "",
-      meta: meta || {}
-    }
+      meta: meta || {},
+    };
 
-    next()
+    next();
   } catch (err) {
-    next(err)
+    next(err);
   }
-}
+};
 
 export const registerWithCode = async (req, res, next) => {
   try {
-    const { email: _email, code } = req.body
+    const { email: _email, code } = req.body;
 
     if (!_email || !code) {
-      throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS)
+      throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS);
     }
 
-    const email = validateEmail(_email)
+    const email = validateEmail(_email);
 
     // Find the user in the database and upate the verification attempt
     const user = await User.findOneAndUpdate(
       { email },
       { $inc: { "emailVerification.attempts": 1 } },
       { new: true }
-    )
+    );
 
     await validateUser(
       email,
       "email",
       { email },
       TYPES.EMAIL_EXISTS_AND_NOT_VERIFIED
-    )
+    );
 
-    const { userId, emailVerification } = user
+    const { userId, emailVerification } = user;
 
     if (emailVerification.attempts > ENV_VAR.MAX_VERIFICATION_ATTEMPTS) {
-      const error = new Error(CONST_STRINGS.MAX_VERIFICATION_ATTEMPTS_REACHED)
-      error.meta = { email }
-      throw error
+      const error = new Error(CONST_STRINGS.MAX_VERIFICATION_ATTEMPTS_REACHED);
+      error.meta = { email };
+      throw error;
     }
 
     if (emailVerification.verified) {
-      const error = new Error(CONST_STRINGS.EMAIL_ALREADY_VERIFIED)
-      error.meta = { email }
-      throw error
+      const error = new Error(CONST_STRINGS.EMAIL_ALREADY_VERIFIED);
+      error.meta = { email };
+      throw error;
     }
 
     if (emailVerification.code !== code) {
-      const error = new Error(CONST_STRINGS.VERIFICATION_CODE_INVALID)
-      error.meta = { email }
-      throw error
+      const error = new Error(CONST_STRINGS.VERIFICATION_CODE_INVALID);
+      error.meta = { email };
+      throw error;
     }
 
     // Check if the verification code is expired
     const verificationCodeExpired =
-      (new Date() - emailVerification.createdAt) / (1000 * 60) >
-      3000
+      (new Date() - emailVerification.createdAt) / (1000 * 60) > 3000;
 
     if (verificationCodeExpired) {
-      const error = new Error(CONST_STRINGS.VERIFICATION_CODE_EXPIRED)
-      error.meta = { email }
-      throw error
+      const error = new Error(CONST_STRINGS.VERIFICATION_CODE_EXPIRED);
+      error.meta = { email };
+      throw error;
     }
 
-    emailVerification.verified = true
-    emailVerification.verifiedAt = new Date()
-    emailVerification.code = ""
-    user.logins.push(new Date())
-    await user.save()
+    emailVerification.verified = true;
+    emailVerification.verifiedAt = new Date();
+    emailVerification.code = "";
+    user.logins.push(new Date());
+    await user.save();
 
     // Call the generateToken function to generate the token
-    const token = generateJwtToken({ userId, email })
+    const token = generateJwtToken({ userId, email });
 
-    res.cookie("jwt", token, getCookieOptions("login"))
+    res.cookie("jwt", token, getCookieOptions("login"));
 
     const responseMessage =
-      CONST_STRINGS.EMAIL_VERIFIED_AND_USER_REGISTERED_SUCCESSFULLY
+      CONST_STRINGS.EMAIL_VERIFIED_AND_USER_REGISTERED_SUCCESSFULLY;
     const responseData = {
       userId,
-      email
-    }
-    const meta = { userId, email }
+      email,
+    };
+    const meta = { userId, email };
     req.data = {
       statuscode: 200,
       responseData: responseData || {},
       responseMessage: responseMessage || "",
-      meta: meta || {}
-    }
+      meta: meta || {},
+    };
 
-    next()
+    next();
   } catch (err) {
-    next(err)
+    next(err);
   }
-}
+};
 
 export const loginWithEmailPassword = async (req, res, next) => {
   try {
@@ -417,7 +419,7 @@ export const loginWithEmailPassword = async (req, res, next) => {
       email,
       role,
       isAdmin: false,
-      isAuthUser: true
+      isAuthUser: true,
     });
 
     res.cookie("jwt", token, getCookieOptions("login"));
@@ -426,12 +428,12 @@ export const loginWithEmailPassword = async (req, res, next) => {
       userId,
       email,
       role,
-      isAuthUser: true
+      isAuthUser: true,
     };
     req.data = {
       statuscode: 200,
       responseData: responseData || {},
-      responseMessage: responseMessage || ""
+      responseMessage: responseMessage || "",
     };
     next();
   } catch (err) {
@@ -537,14 +539,14 @@ export const getChangeEmailCode = async (req, res, next) => {
       ...(ENV_VAR.SEND_CODE
         ? {
             code: changeEmailVerification.code,
-            currentEmailCode: changeEmailVerification.currentEmailCode
+            currentEmailCode: changeEmailVerification.currentEmailCode,
           }
-        : {})
+        : {}),
     };
     req.data = {
       statuscode: 200,
       responseData: responseData || {},
-      responseMessage: responseMessage || ""
+      responseMessage: responseMessage || "",
     };
     next();
   } catch (err) {
@@ -629,12 +631,12 @@ export const changeEmailWithCode = async (req, res, next) => {
     const responseMessage = CONST_STRINGS.EMAIL_CHANGED_SUCCESSFULLY;
     const responseData = {
       userId,
-      email: user.email
+      email: user.email,
     };
     req.data = {
       statuscode: 200,
       responseData: responseData || {},
-      responseMessage: responseMessage || ""
+      responseMessage: responseMessage || "",
     };
 
     next();
@@ -690,12 +692,12 @@ export const changePassword = async (req, res, next) => {
 
     const responseMessage = CONST_STRINGS.PASSWORD_CHANGED_SUCCESSFULLY;
     const responseData = {
-      userId
+      userId,
     };
     req.data = {
       statuscode: 200,
       responseData: responseData || {},
-      responseMessage: responseMessage || ""
+      responseMessage: responseMessage || "",
     };
 
     next();
@@ -707,153 +709,152 @@ export const changePassword = async (req, res, next) => {
 
 export const getForgotPasswordCode = async (req, res, next) => {
   try {
-    const { email: _email } = req.body
+    const { email: _email } = req.body;
 
     if (!_email) {
-      throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS)
+      throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS);
     }
 
-    const email = validateEmail(_email)
+    const email = validateEmail(_email);
 
     const user = await validateUser(
       email,
       "email",
       { email },
       TYPES.EMAIL_VERIFIED
-    )
+    );
 
-    const { userId, forgotPassowrdVerification } = user
+    const { userId, forgotPassowrdVerification } = user;
 
-    forgotPassowrdVerification.code = generateCode()
-    forgotPassowrdVerification.createdAt = new Date()
-    forgotPassowrdVerification.attempts = 0
-    forgotPassowrdVerification.verified = false
-    await user.save()
+    forgotPassowrdVerification.code = generateCode();
+    forgotPassowrdVerification.createdAt = new Date();
+    forgotPassowrdVerification.attempts = 0;
+    forgotPassowrdVerification.verified = false;
+    await user.save();
 
     // Send the verification code to the user's email (implementation not provided)
 
     const responseMessage =
-      CONST_STRINGS.FORGOT_PASSWORD_CODE_SENT_SUCCESSFULLY
+      CONST_STRINGS.FORGOT_PASSWORD_CODE_SENT_SUCCESSFULLY;
     const responseData = {
       userId,
       email,
-      code: forgotPassowrdVerification.code
-    }
-    const meta = { userId, email }
+      code: forgotPassowrdVerification.code,
+    };
+    const meta = { userId, email };
     req.data = {
       statuscode: 200,
       responseData: responseData || {},
       responseMessage: responseMessage || "",
-      meta: meta || {}
-    }
-    next()
+      meta: meta || {},
+    };
+    next();
   } catch (err) {
-    next(err)
+    next(err);
   }
-}
+};
 
 export const changePasswordWithCode = async (req, res, next) => {
   try {
-    const { email: _email, code, newPassword, confirmPassword } = req.body
+    const { email: _email, code, newPassword, confirmPassword } = req.body;
 
     if (!_email || !code || !newPassword || !confirmPassword) {
-      throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS)
+      throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS);
     }
 
-    const email = validateEmail(_email)
-    validatePassword(newPassword, confirmPassword)
+    const email = validateEmail(_email);
+    validatePassword(newPassword, confirmPassword);
 
     // Find the user in the database and upate the verification attempt
     const user = await User.findOneAndUpdate(
       { email },
       { $inc: { "forgotPassowrdVerification.attempts": 1 } },
       { new: true }
-    )
-    await validateUser(email, "email", { email }, TYPES.EMAIL_VERIFIED)
+    );
+    await validateUser(email, "email", { email }, TYPES.EMAIL_VERIFIED);
 
-    const { userId, forgotPassowrdVerification, password: oldPassword } = user
+    const { userId, forgotPassowrdVerification, password: oldPassword } = user;
 
     if (
       forgotPassowrdVerification.attempts > ENV_VAR.MAX_VERIFICATION_ATTEMPTS
     ) {
-      const error = new Error(CONST_STRINGS.MAX_VERIFICATION_ATTEMPTS_REACHED)
-      throw error
+      const error = new Error(CONST_STRINGS.MAX_VERIFICATION_ATTEMPTS_REACHED);
+      throw error;
     }
 
     if (forgotPassowrdVerification.verified) {
       const error = new Error(
         CONST_STRINGS.FORGOT_PASSWORD_CODE_ALREADY_VERIFIED
-      )
-      error.meta = { email }
-      throw error
+      );
+      error.meta = { email };
+      throw error;
     }
 
     // Check if the verification code is expired
     const verificationCodeExpired =
       (new Date() - forgotPassowrdVerification.createdAt) / (1000 * 60) >
-      ENV_VAR.VERIFICATION_CODE_EXPIRE_IN_MINS
+      ENV_VAR.VERIFICATION_CODE_EXPIRE_IN_MINS;
 
     if (verificationCodeExpired) {
-      const error = new Error(CONST_STRINGS.VERIFICATION_CODE_EXPIRED)
-      error.meta = { email }
-      throw error
+      const error = new Error(CONST_STRINGS.VERIFICATION_CODE_EXPIRED);
+      error.meta = { email };
+      throw error;
     }
 
     if (forgotPassowrdVerification.code !== code) {
-      const error = new Error(CONST_STRINGS.VERIFICATION_CODE_INVALID)
-      error.meta = { email }
-      throw error
+      const error = new Error(CONST_STRINGS.VERIFICATION_CODE_INVALID);
+      error.meta = { email };
+      throw error;
     }
 
-    const isMatch = await comparePasswordWithHash(newPassword, oldPassword)
+    const isMatch = await comparePasswordWithHash(newPassword, oldPassword);
 
     if (isMatch) {
-      const error = new Error(CONST_STRINGS.NEW_PASSWORD_MATCHES_OLD_PASSWORD)
-      error.meta = { email }
-      throw error
+      const error = new Error(CONST_STRINGS.NEW_PASSWORD_MATCHES_OLD_PASSWORD);
+      error.meta = { email };
+      throw error;
     }
 
-    forgotPassowrdVerification.verified = true
-    forgotPassowrdVerification.verifiedAt = new Date()
-    forgotPassowrdVerification.code = ""
+    forgotPassowrdVerification.verified = true;
+    forgotPassowrdVerification.verifiedAt = new Date();
+    forgotPassowrdVerification.code = "";
 
-    const hashedPassword = await hashPassword(newPassword)
-    user.password = hashedPassword
+    const hashedPassword = await hashPassword(newPassword);
+    user.password = hashedPassword;
 
-    await user.save()
+    await user.save();
 
-    const responseMessage = CONST_STRINGS.PASSWORD_CHANGED_SUCCESSFULLY
+    const responseMessage = CONST_STRINGS.PASSWORD_CHANGED_SUCCESSFULLY;
     const responseData = {
       userId,
-      email
-    }
-    const meta = { userId, email }
+      email,
+    };
+    const meta = { userId, email };
     req.data = {
       statuscode: 200,
       responseData: responseData || {},
       responseMessage: responseMessage || "",
-      meta: meta || {}
-    }
+      meta: meta || {},
+    };
 
-    next()
+    next();
   } catch (err) {
-    next(err)
+    next(err);
   }
-}
-
+};
 
 export const getTermsAndConditions = async (req, res, next) => {
   try {
     req.meta = { endpoint: "getTermsAndConditions" };
     const termsAndConditions = await getTNC();
     const responseData = {
-      termsAndConditions
+      termsAndConditions,
     };
     const responseMessage = CONST_STRINGS.TERMS_AND_CONDITIONS_RETRIVED;
     req.data = {
       statuscode: 200,
       responseData: responseData || {},
-      responseMessage: responseMessage || ""
+      responseMessage: responseMessage || "",
     };
 
     next();
@@ -873,12 +874,12 @@ export const logoutUser = async (req, res, next) => {
     res.clearCookie("jwt", getCookieOptions("logout"));
     const responseMessage = CONST_STRINGS.USER_LOGOUT_SUCCESSFULL;
     const responseData = {
-      userId
+      userId,
     };
     req.data = {
       statuscode: 200,
       responseData: responseData || {},
-      responseMessage: responseMessage || ""
+      responseMessage: responseMessage || "",
     };
 
     next();
@@ -910,12 +911,12 @@ export const deleteUserAndData = async (req, res, next) => {
 
     const responseMessage = CONST_STRINGS.USER_DELETED_SUCCESSFULLY;
     const responseData = {
-      email
+      email,
     };
     req.data = {
       statuscode: 200,
       responseData: responseData || {},
-      responseMessage: responseMessage || ""
+      responseMessage: responseMessage || "",
     };
 
     next();
@@ -943,7 +944,7 @@ export const getUserData = async (req, res, next) => {
       ![
         CONST_STRINGS.TEST_USER_EMAIL,
         CONST_STRINGS.TEST_SUB_USER_EMAIL,
-        CONST_STRINGS.TEST_ADMIN_EMAIL
+        CONST_STRINGS.TEST_ADMIN_EMAIL,
       ].includes(email)
     ) {
       throw new Error(CONST_STRINGS.INVALD_PASS_KEY);
@@ -967,12 +968,12 @@ export const getUserData = async (req, res, next) => {
 
     const responseMessage = CONST_STRINGS.USER_RETRIEVED_SUCCESSFULLY;
     const responseData = {
-      user
+      user,
     };
     req.data = {
       statuscode: 200,
       responseData: responseData || {},
-      responseMessage: responseMessage || ""
+      responseMessage: responseMessage || "",
     };
 
     next();
@@ -1025,7 +1026,7 @@ export const updateUserStatusWithKey = async (req, res, next) => {
     req.data = {
       statuscode: 200,
       responseData,
-      responseMessage: CONST_STRINGS.UPDATE_USER_STATUS_SUCCESS
+      responseMessage: CONST_STRINGS.UPDATE_USER_STATUS_SUCCESS,
     };
     next();
   } catch (err) {
