@@ -26,19 +26,19 @@ app.use(fileUpload({
 // Enable CORS for allowed origins
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true)
+    // origin: (origin, callback) => {
+    //   // Allow requests with no origin (like mobile apps or curl requests)
+    //   if (!origin) return callback(null, true)
 
-      // Check if the origin is allowed
-      if (ENV_VAR.ALLOWED_ORIGINS.indexOf(origin) === -1) {
-        // If the origin is not allowed, set the Access-Control-Allow-Origin header to null
-        return callback(null, false)
-      }
-      // If the origin is allowed, set the Access-Control-Allow-Origin header to the origin and continue with the request
-      return callback(null, true)
-    },
-    credentials: true // Set to allow credentials in the request
+    //   // Check if the origin is allowed
+    //   if (ENV_VAR.ALLOWED_ORIGINS.indexOf(origin) === -1) {
+    //     // If the origin is not allowed, set the Access-Control-Allow-Origin header to null
+    //     return callback(null, false)
+    //   }
+    //   // If the origin is allowed, set the Access-Control-Allow-Origin header to the origin and continue with the request
+    //   return callback(null, true)
+    // },
+    // credentials: true // Set to allow credentials in the request
   })
 )
 
