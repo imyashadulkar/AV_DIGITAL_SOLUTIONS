@@ -1,0 +1,491 @@
+{
+	"info": {
+		"_postman_id": "fc611e96-3e5e-4464-8a1d-13f4cdfa076c",
+		"name": "Ride-Eve Assignment",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "25804259",
+		"_collection_link": "https://www.postman.com/orange-resonance-595066/workspace/my-collection/collection/25804259-fc611e96-3e5e-4464-8a1d-13f4cdfa076c?action=share&source=collection_link&creator=25804259"
+	},
+	"item": [
+		{
+			"name": "Auth User",
+			"item": [
+				{
+					"name": "Get Register Code",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\":\"ayubshikalgar2@gmail.com\",\r\n    \"userName\":\"Razzaq Shikalgar\",\r\n    \"phoneNumber\":\"9167310023\",\r\n    \"password\":\"Bca@12345\",\r\n    \"confirmPassword\":\"Bca@12345\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3204/evee-backend/v1/auth/get-register-code",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3204",
+							"path": [
+								"evee-backend",
+								"v1",
+								"auth",
+								"get-register-code"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register With Code",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\":\"razzaq00@projectabs.com\",\r\n    \"code\":\"513212\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/v1/auth/register-with-code",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"register-with-code"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Resend Register Code",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\":\"razzaq@projectabs.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/v1/auth/resend-register-code",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"resend-register-code"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login With Email and Password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{cookie}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"ayubshikalgar2@gmail.com\",\r\n    \"password\": \"Bca@12345\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/v1/auth/login-with-email-password",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"login-with-email-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "{{cookie}}",
+								"type": "default"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\":\"suresh@projectabs.com\",\r\n    \"password\":\"Bca@1234\",\r\n    \"newPassword\":\"Bca@12345\",\r\n    \"confirmPassword\":\"Bca@12345\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/v1/auth/change-password",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"change-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Forgot Password Code",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\":\"navaneeth@zealnex.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/v1/auth/get-forgot-password-code",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"get-forgot-password-code"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout User",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"userId\":\"fbe74f72-7887-46cc-8014-928a2ba76399\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/v1/auth/logout",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "verify token",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/v1/auth/verify-token",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"verify-token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Ping Server",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/v1/ping",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"v1",
+								"ping"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update user Details",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"ayubshikalgar2@gmail.com\",\r\n    \"password\": \"Bca@12345\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/v1/auth/update-user/9b7b60a5-c606-45e6-b9b1-07447d310b69",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"update-user",
+								"9b7b60a5-c606-45e6-b9b1-07447d310b69"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/v1/auth/delete-user-data/9b7b60a5-c606-45e6-b9b1-07447d310b69",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"v1",
+								"auth",
+								"delete-user-data",
+								"9b7b60a5-c606-45e6-b9b1-07447d310b69"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin Routes",
+			"item": [
+				{
+					"name": "Login Routes",
+					"item": [
+						{
+							"name": "Get Admin Login Code",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\":\"admin@projectabs.com\",\r\n    \"password\":\"Bca@12345\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{host}}/v1/admin/get-admin-login-code",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"v1",
+										"admin",
+										"get-admin-login-code"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Admin Login With Code",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{cookie}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\":\"admin@razzaq.com\",\r\n    \"password\":\"Bca@12345\",\r\n    \"code\":\"432726\"\r\n\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{host}}/v1/admin/admin-login-with-code",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"v1",
+										"admin",
+										"admin-login-with-code"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "User Routes",
+					"item": [
+						{
+							"name": "Get All Users",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Cookie",
+										"value": "{{cookie}}",
+										"type": "default"
+									}
+								],
+								"url": {
+									"raw": "{{host}}/v1/admin/get-all-users",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"v1",
+										"admin",
+										"get-all-users"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get User By ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "cookie",
+										"value": "{{cookie}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{host}}/v1/admin/get-user-by-id/5248f2fc-de60-4798-a07d-5dfc63d5c62e",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"v1",
+										"admin",
+										"get-user-by-id",
+										"5248f2fc-de60-4798-a07d-5dfc63d5c62e"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{cookie}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "host",
+			"value": "http://localhost:3204/evee-backend"
+		},
+		{
+			"key": "cookie",
+			"value": "jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5YjdiNjBhNS1jNjA2LTQ1ZTYtYjliMS0wNzQ0N2QzMTBiNjkiLCJlbWFpbCI6ImF5dWJzaGlrYWxnYXIyQGdtYWlsLmNvbSIsImlhdCI6MTcxNzMxNjU2OSwiZXhwIjoxNzE3Mzc2NTY5fQ.9BjFampA7V4tf3yujCiYHhE6nlJw4_T48Ij9DbVVUQs; Max-Age=60000; Path=/; Expires=Mon, 03 Jun 2024 01:02:49 GMT; HttpOnly; Secure; SameSite=None"
+		}
+	]
+}
