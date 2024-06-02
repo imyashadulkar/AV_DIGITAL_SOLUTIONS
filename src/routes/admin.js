@@ -5,13 +5,9 @@ import {
   adminLoginWithCode,
   getAdminLoginCode,
   getAllUsers,
-  getAllUsersLicenseData,
   getUserById,
-  getUserLicenseDetailById,
   loginWithEmailPasswordAdmin,
-  logoutAdmin,
-  setLicenseDataById,
-  updateUserStatus
+
 } from "../controllers/admincontroller.js";
 import { ADMIN_ROUTES } from "../helpers/constants.js";
 import { verifyAdmin, verifyToken } from "../middleware/auth.js";
@@ -50,41 +46,6 @@ router.get(
   verifyToken,
   verifyAdmin,
   getUserById,
-  successResponse
-);
-router.post(
-  ADMIN_ROUTES.SET_LICENSE_DATA_BY_ID,
-  verifyToken,
-  verifyAdmin,
-  setLicenseDataById,
-  successResponse
-);
-router.get(
-  ADMIN_ROUTES.GET_ALL_USERS_LICENSE_DATA,
-  verifyToken,
-  verifyAdmin,
-  getAllUsersLicenseData,
-  successResponse
-);
-router.get(
-  ADMIN_ROUTES.GET_USER_LICENSE_DATA_BY_ID,
-  verifyToken,
-  verifyAdmin,
-  getUserLicenseDetailById,
-  successResponse
-);
-router.post(
-  ADMIN_ROUTES.UPDATE_USER_STATUS,
-  verifyToken,
-  verifyAdmin,
-  updateUserStatus,
-  successResponse
-);
-router.post(
-  ADMIN_ROUTES.LOGOUT_ADMIN,
-  verifyToken,
-  verifyAdmin,
-  logoutAdmin,
   successResponse
 );
 

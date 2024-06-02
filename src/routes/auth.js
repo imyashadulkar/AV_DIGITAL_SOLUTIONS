@@ -1,20 +1,16 @@
 import express from "express";
 
 import {
-  changeEmailWithCode,
   changePassword,
   changePasswordWithCode,
-  deleteUserAndData,
-  getChangeEmailCode,
+  deleteUser,
   getForgotPasswordCode,
   getRegisterCode,
-  getTermsAndConditions,
-  getUserData,
   loginWithEmailPassword,
   logoutUser,
   registerWithCode,
   resendRegisterCode,
-  updateUserStatusWithKey,
+  updateUser,
   validateTokenResponse
 } from "../controllers/auth.js";
 import { AUTH_ROUTES } from "../helpers/constants.js";
@@ -57,39 +53,19 @@ router.post(
   changePassword,
   successResponse
 );
-
-router.post(
-  AUTH_ROUTES.GET_CHANGE_EMAIL_CODE,
+router.put(
+  AUTH_ROUTES.UPDATE_USER,
   verifyToken,
-  getChangeEmailCode,
+  updateUser,
   successResponse
 );
-
-router.post(
-  AUTH_ROUTES.CHANGE_EMAIL_WITH_CODE,
-  verifyToken,
-  changeEmailWithCode,
-  successResponse
-);
-
 router.delete(
-  AUTH_ROUTES.DELETE_USER_AND_DATA,
-  deleteUserAndData,
+  AUTH_ROUTES.DELETE_USER,
+  verifyToken,
+  deleteUser,
   successResponse
 );
 
-router.get(AUTH_ROUTES.GET_USER_DATA, getUserData, successResponse);
 
-router.get(
-  AUTH_ROUTES.GET_TERMS_AND_CONDITIONS,
-  getTermsAndConditions,
-  successResponse
-);
-
-router.post(
-  AUTH_ROUTES.UPDATE_USER_STATUS_WITH_KEY,
-  updateUserStatusWithKey,
-  successResponse
-);
 
 export default router;

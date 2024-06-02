@@ -4,7 +4,6 @@ import express from "express"
 // Import local modules
 import { CONST_STRINGS, BASE_ROUTES } from "../helpers/constants.js"
 import adminRoutes from "./admin.js"
-import moduleRoutes from "./module.js"
 import authRoutes from "./auth.js"
 
 
@@ -21,7 +20,6 @@ router.get(BASE_ROUTES.PING_ROUTE, async (req, res) => {
 
 // Mount the routes at respective BASE paths
 router.use(BASE_ROUTES.ADMIN_ROUTES, adminRoutes)
-router.use(BASE_ROUTES.MODULE_ROUTES, moduleRoutes)
 router.use(BASE_ROUTES.AUTH_ROUTES, authRoutes)
 
 export default router

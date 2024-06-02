@@ -26,7 +26,11 @@ const userSchema = new mongoose.Schema(
     userId: {
       type: String,
       required: true,
-      unique: true
+      unique: true,
+    },
+    userName: {
+      type: String,
+      required: true,
     },
     shortCode: {
       type: String,
@@ -34,6 +38,11 @@ const userSchema = new mongoose.Schema(
       unique: true
     },
     email: {
+      type: String,
+      required: true,
+      unique: true
+    },
+    phoneNumber: {
       type: String,
       required: true,
       unique: true
@@ -47,6 +56,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true
     },
+    userRole: {
+      type: String,
+      required: true
+    },
+    
     isBlocked: {
       type: Boolean,
       required: true,

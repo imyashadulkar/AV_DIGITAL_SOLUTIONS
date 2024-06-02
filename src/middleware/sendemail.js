@@ -12,9 +12,9 @@ const transporter = nodemailer.createTransport({
 const mailGenerator = new Mailgen({
   theme: "salted",
   product: {
-    name: "Sati world",
-    link: "satiworld.com",
-    logo: "https://imgs.search.brave.com/rn6icFOaf48ER4REUa353o6CJguP8wfNZynsT6TZwOI/rs:fit:860:0:0/g:ce/aHR0cHM6Ly9tZWRp/YS5pc3RvY2twaG90/by5jb20vaWQvMTUz/NTI5NjE4L3Bob3Rv/L2F0LXNpZ24taW4t/YS1jaXR5LmpwZz9z/PTYxMng2MTImdz0w/Jms9MjAmYz1kNGRf/T1N1aUczZmhkczVo/aWlZVmVyZ1E1LU43/aW5JcnFQM3NzZ0FM/VXd3PQ",
+    name: "Heyy !! This is the OTP for Ride-Eve Assignment",
+    link: "google.com",
+    logo: "",
   },
 });
 

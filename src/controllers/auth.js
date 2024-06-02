@@ -2,22 +2,18 @@ import { v4 as uuidv4 } from "uuid";
 
 import {
   comparePasswordWithHash,
-  deleteUser,
   generateCode,
   generateJwtToken,
   getCookieOptions,
-  getTNC,
   hashPassword,
-  validateChangeEmail,
   validateEmail,
   validatePassword,
   validateToken,
   validateUser,
 } from "../helpers/authHelper.js";
-// import { sendEmail } from "../helpers/awsSESHelper.js";
 import { CONST_STRINGS, TYPES } from "../helpers/constants.js";
 import { ENV_VAR } from "../helpers/env.js";
-import { AdminUser, User } from "../models/index.js";
+import { User } from "../models/index.js";
 import sendEmail from "../middleware/sendemail.js";
 
 // Create a middleware function that verifies the token and sends back the user information
@@ -56,139 +52,44 @@ export const validateTokenResponse = async (req, res, next) => {
   }
 };
 
-// export const getRegisterCode = async (req, res, next) => {
-//   try {
-//     req.meta = { endpoint: "getRegisterCode" };
-//     const { email: _email, password, confirmPassword } = req.body;
-//     req.meta.email = _email;
-
-//     if (!_email || !password || !confirmPassword) {
-//       throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS);
-//     }
-
-//     const email = validateEmail(_email);
-//     const user = await validateUser(
-//       email,
-//       "email",
-//       { email },
-//       TYPES.EMAIL_DOES_NOT_EXISTS_OR_NOT_VERIFIED
-//     );
-
-//     validatePassword(password, confirmPassword);
-
-//     const users = await User.find();
-//     const shortCodes = users
-//       .map((user) => Number(user?.shortCode?.split("ABSL")?.[1]))
-//       .filter((value) => !isNaN(value));
-//     const nextShortCode = Math.max(...shortCodes) + 1;
-//     const userId = user ? user.userId : uuidv4();
-//     const shortCode = `ABSL${nextShortCode}`;
-//     const hashedPassword = await hashPassword(password);
-
-//     const emailVerification = {
-//       code: generateCode(),
-//       createdAt: new Date(),
-//       attempts: 0,
-//       verified: false
-//     };
-
-//     // TODO : format Email template
-//     const recipientEmail = [email];
-//     const origin = req.get("Origin");
-//     // const recipientEmail = ["info@psgbs.com"];
-//     const senderEmail = "do-not-reply@psgbs.com";
-//     const emailSubject =
-//       "One-Time Password (OTP) for Registering with Assign by Skill";
-//     const emailMessage = `Dear User,
-
-//     We're excited to welcome you to Assign by Skill! Thank you for your interest in registering with us. To complete your registration, please use the following One-Time Password (OTP) : ${emailVerification.code}
-
-//     Please enter this OTP on our registration page to verify your email address and complete the registration process.
-
-//     If you didn't request this OTP, please ignore this email. Your account's security is important to us, and we take any unauthorized access seriously.
-
-//     If you have any questions or need assistance, please feel free to contact us at info@psgbs.com.
-
-//     We're thrilled to have you as a part of our community and look forward to serving you.
-
-//     Best regards,
-//     Assign by Skill
-//     www.psgbs.com/abs`;
-
-//     try {
-//       await sendEmail(
-//         origin,
-//         emailSubject,
-//         emailMessage,
-//         senderEmail,
-//         recipientEmail,
-//         []
-//       );
-//     } catch {}
-
-//     await User.findOneAndUpdate(
-//       { email, userId },
-//       {
-//         $set: {
-//           password: hashedPassword,
-//           emailVerification,
-//           shortCode
-//         }
-//       },
-//       { upsert: true, new: true }
-//     );
-
-//     const responseMessage = CONST_STRINGS.USER_REGISTER_CODE_SENT;
-//     const responseData = {
-//       ...(ENV_VAR.SEND_CODE ? { code: emailVerification.code } : {})
-//     };
-//     req.data = {
-//       statuscode: 200,
-//       responseData: responseData || {},
-//       responseMessage: responseMessage || ""
-//     };
-//     next();
-//   } catch (err) {
-//     req.err = err;
-//     next(err);
-//   }
-// };
-
 export const getRegisterCode = async (req, res, next) => {
   try {
-    const { email: _email, password, confirmPassword } = req.body;
+    const {
+      email: _email,
+      password,
+      confirmPassword,
+      userName,
+      phoneNumber,
+      userRole,
+    } = req.body;
 
-    if (!_email || !password || !confirmPassword) {
+    // Check for missing required inputs
+    if (!_email || !password || !confirmPassword || !userName || !phoneNumber || !userRole) {
       throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS);
     }
 
     const email = validateEmail(_email);
-    const user = await validateUser(
-      email,
-      "email",
-      { email },
-      TYPES.EMAIL_DOES_NOT_EXISTS_OR_NOT_VERIFIED
-    );
 
-    validatePassword(password, confirmPassword);
-    const users = await User.find();
-
-    const shortCodes = users
-      .map((user) => Number(user?.shortCode?.split("ABSL")?.[1]))
-      .filter((value) => !isNaN(value));
-
-    let nextShortCode;
-
-    if (shortCodes.length > 0) {
-      nextShortCode = Math.max(...shortCodes) + 1;
-    } else {
-      nextShortCode = 1;
+    // Check if user already exists
+    const user = await User.findOne({ email });
+    if (user) {
+      throw new Error("User Already Found in Database");
     }
 
+    // Validate password
+    validatePassword(password, confirmPassword);
+
+    // Generate next short code
+    const users = await User.find();
+    const shortCodes = users.map(user => Number(user?.shortCode?.split("ABSL")?.[1])).filter(value => !isNaN(value));
+    const nextShortCode = shortCodes.length > 0 ? Math.max(...shortCodes) + 1 : 1;
+
+    // Generate userId and shortCode
     const userId = user ? user.userId : uuidv4();
     const shortCode = `ABSL${nextShortCode}`;
     const hashedPassword = await hashPassword(password);
-  
+
+    // Generate email verification code and send email
     const emailVerification = {
       code: generateCode(),
       createdAt: new Date(),
@@ -202,17 +103,16 @@ export const getRegisterCode = async (req, res, next) => {
       subject: "OTP Verification",
       body: {
         name: "Razzaq Shikalgar",
-        intro: "Welcome to Your Product! Here is your OTP: " + OTP,
-        outro:
-          "This OTP code is valid for 5 minutes. If you didn't request this OTP, please ignore this email.",
+        intro: `Welcome to Your Product! Here is your OTP: ${OTP}`,
+        outro: "This OTP code is valid for 5 minutes. If you didn't request this OTP, please ignore this email.",
       },
     };
 
     sendEmail(emailData);
 
-    
+    // Save user data
     await User.findOneAndUpdate(
-      { email, userId },
+      { email, userId, userName, phoneNumber, userRole },
       {
         $set: {
           password: hashedPassword,
@@ -223,21 +123,22 @@ export const getRegisterCode = async (req, res, next) => {
       { upsert: true, new: true }
     );
 
-    const responseMessage = CONST_STRINGS.USER_REGISTER_CODE_CREATED;
+    // Set response data
     const responseData = {
       userId,
       email,
       code: emailVerification.code,
     };
-    const meta = { userId, email };
+
     req.data = {
       statuscode: 200,
       responseData: responseData || {},
-      responseMessage: responseMessage || "",
-      meta: meta || {},
+      responseMessage: CONST_STRINGS.USER_REGISTER_CODE_CREATED,
+      meta: { userId, email },
     };
     next();
   } catch (err) {
+    req.err = err;
     next(err);
   }
 };
@@ -442,210 +343,6 @@ export const loginWithEmailPassword = async (req, res, next) => {
   }
 };
 
-export const getChangeEmailCode = async (req, res, next) => {
-  try {
-    req.meta = { endpoint: "getChangeEmailCode" };
-
-    const { userId, newEmail, confirmEmail } = req.body;
-
-    if (!userId || !newEmail || !confirmEmail) {
-      throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS);
-    }
-
-    const email = validateEmail(newEmail);
-
-    const user = await validateUser(
-      userId,
-      "userId",
-      { userId },
-      TYPES.EMAIL_VERIFIED
-    );
-
-    await validateChangeEmail(email, confirmEmail, user, userId);
-
-    // eslint-disable-next-line no-unused-vars
-    const { changeEmailVerification, email: currentEmail } = user;
-
-    changeEmailVerification.newEmail = email;
-    changeEmailVerification.code = generateCode();
-    changeEmailVerification.currentEmailCode = generateCode();
-    changeEmailVerification.createdAt = new Date();
-    changeEmailVerification.attempts = 0;
-    changeEmailVerification.verified = false;
-    await user.save();
-
-    // TODO : format Email template
-    // let recipientEmail = "info@psgbs.com";
-    let recipientEmail = changeEmailVerification.newEmail;
-    const origin = req.get("Origin");
-    let senderEmail = "info@psgbs.com";
-    let emailSubject = "One-Time Password (OTP) for Assign by Skill account";
-    let emailMessage = `Dear User,
-    
-        Your OTP One-Time Password (OTP) : ${changeEmailVerification.code}
-        
-        Please enter this OTP to verify your email address and complete the change email process.
-        
-        If you didn't request this OTP, please ignore this email. Your account's security is important to us, and we take any unauthorized access seriously.
-        
-        If you have any questions or need assistance, please feel free to contact us at info@psgbs.com.
-                
-        Best regards,
-        Assign by Skill
-        www.psgbs.com/abs`;
-
-    try {
-      await sendEmail(
-        origin,
-        emailSubject,
-        emailMessage,
-        senderEmail,
-        recipientEmail,
-        []
-      );
-    } catch {}
-
-    // recipientEmail = currentEmail;
-    recipientEmail = "info@psgbs.com";
-    senderEmail = "info@psgbs.com";
-    emailSubject = "One-Time Password (OTP) for Assign by Skill account";
-    emailMessage = `Dear User,
-    
-        Your OTP One-Time Password (OTP) : ${changeEmailVerification.currentEmailCode}
-        
-        Please enter this OTP to verify your email address and complete the change email process.
-        
-        If you didn't request this OTP, please ignore this email. Your account's security is important to us, and we take any unauthorized access seriously.
-        
-        If you have any questions or need assistance, please feel free to contact us at info@psgbs.com.
-                
-        Best regards,
-        Assign by Skill
-        www.psgbs.com/abs`;
-
-    try {
-      await sendEmail(
-        origin,
-        emailSubject,
-        emailMessage,
-        senderEmail,
-        recipientEmail,
-        []
-      );
-    } catch {}
-
-    const responseMessage = CONST_STRINGS.CHANGE_EMAIL_CODE_SENT_SUCCESSFULLY;
-    const responseData = {
-      ...(ENV_VAR.SEND_CODE
-        ? {
-            code: changeEmailVerification.code,
-            currentEmailCode: changeEmailVerification.currentEmailCode,
-          }
-        : {}),
-    };
-    req.data = {
-      statuscode: 200,
-      responseData: responseData || {},
-      responseMessage: responseMessage || "",
-    };
-    next();
-  } catch (err) {
-    req.err = err;
-    next(err);
-  }
-};
-
-export const changeEmailWithCode = async (req, res, next) => {
-  try {
-    req.meta = { endpoint: "changeEmailWithCode" };
-
-    const { userId, password, code, currentEmailCode } = req.body;
-    if (!userId || !password || !code || !currentEmailCode) {
-      throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS);
-    }
-
-    const user = await validateUser(
-      userId,
-      "userId",
-      { userId },
-      TYPES.EMAIL_VERIFIED
-    );
-
-    const { changeEmailVerification, password: hashedPassword } = user;
-
-    changeEmailVerification.attempts = changeEmailVerification.attempts + 1;
-    await user.save();
-
-    if (changeEmailVerification.attempts > ENV_VAR.MAX_VERIFICATION_ATTEMPTS) {
-      const error = new Error(CONST_STRINGS.MAX_VERIFICATION_ATTEMPTS_REACHED);
-      throw error;
-    }
-
-    if (changeEmailVerification.verified) {
-      const error = new Error(CONST_STRINGS.CHANGE_EMAIL_CODE_ALREADY_VERIFIED);
-      error.meta = { userId };
-      throw error;
-    }
-
-    // Check if the verification code is expired
-    const verificationCodeExpired =
-      (new Date() - changeEmailVerification.createdAt) / (1000 * 60) >
-      ENV_VAR.VERIFICATION_CODE_EXPIRE_IN_MINS;
-
-    if (verificationCodeExpired) {
-      const error = new Error(CONST_STRINGS.VERIFICATION_CODE_EXPIRED);
-      error.meta = { userId };
-      throw error;
-    }
-
-    if (
-      changeEmailVerification.code !== code ||
-      changeEmailVerification.currentEmailCode !== currentEmailCode
-    ) {
-      const error = new Error(CONST_STRINGS.VERIFICATION_CODE_INVALID);
-      error.meta = { userId };
-      throw error;
-    }
-
-    const isPasswordValid = await comparePasswordWithHash(
-      password,
-      hashedPassword
-    );
-
-    if (!isPasswordValid) {
-      const error = new Error(CONST_STRINGS.INVALID_CREDENTIALS);
-      error.meta = { userId };
-      throw error;
-    }
-
-    user.previousEmails.push({ email: user.email, changed: new Date() });
-    user.email = changeEmailVerification.newEmail;
-    changeEmailVerification.verified = true;
-    changeEmailVerification.verifiedAt = new Date();
-    changeEmailVerification.code = "";
-    changeEmailVerification.currentEmailCode = "";
-    changeEmailVerification.newEmail = "";
-
-    await user.save();
-
-    const responseMessage = CONST_STRINGS.EMAIL_CHANGED_SUCCESSFULLY;
-    const responseData = {
-      userId,
-      email: user.email,
-    };
-    req.data = {
-      statuscode: 200,
-      responseData: responseData || {},
-      responseMessage: responseMessage || "",
-    };
-
-    next();
-  } catch (err) {
-    req.err = err;
-    next(err);
-  }
-};
-
 export const changePassword = async (req, res, next) => {
   try {
     req.meta = { endpoint: "changePassword" };
@@ -843,20 +540,75 @@ export const changePasswordWithCode = async (req, res, next) => {
   }
 };
 
-export const getTermsAndConditions = async (req, res, next) => {
+export const updateUser = async (req, res, next) => {
   try {
-    req.meta = { endpoint: "getTermsAndConditions" };
-    const termsAndConditions = await getTNC();
+    req.meta = { endpoint: "updateUser" };
+
+    const { email: _email, userName, phoneNumber } = req.body;
+    const { userId } = req.params;
+
+    if (!userId || !_email) {
+      throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS);
+    }
+
+    const email = validateEmail(_email);
+    const user = await User.findOne({ userId });
+
+    if (!user) {
+      throw new Error(CONST_STRINGS.USER_NOT_FOUND);
+    }
+
+    if (userName) {
+      user.userName = userName;
+    } else {
+      user.phoneNumber = phoneNumber;
+    }
+    await user.save();
+
+    const responseMessage = CONST_STRINGS.USER_UPDATED_SUCCESSFULLY;
     const responseData = {
-      termsAndConditions,
+      userId,
+      email: user.email,
+      userName: user.userName,
+      phoneNumber: user.phoneNumber,
     };
-    const responseMessage = CONST_STRINGS.TERMS_AND_CONDITIONS_RETRIVED;
     req.data = {
       statuscode: 200,
       responseData: responseData || {},
       responseMessage: responseMessage || "",
     };
+    next();
+  } catch (err) {
+    req.err = err;
+    next(err);
+  }
+};
 
+export const deleteUser = async (req, res, next) => {
+  try {
+    req.meta = { endpoint: "deleteUser" };
+
+    const { userId } = req.params;
+
+    if (!userId) {
+      throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS);
+    }
+
+    const user = await User.findOneAndDelete({ userId: userId });
+
+    if (!user) {
+      throw new Error(CONST_STRINGS.USER_NOT_FOUND);
+    }
+
+    const responseMessage = CONST_STRINGS.USER_DELETED_SUCCESSFULLY;
+    const responseData = {
+      userId,
+    };
+    req.data = {
+      statuscode: 200,
+      responseData: responseData || {},
+      responseMessage: responseMessage || "",
+    };
     next();
   } catch (err) {
     req.err = err;
@@ -882,152 +634,6 @@ export const logoutUser = async (req, res, next) => {
       responseMessage: responseMessage || "",
     };
 
-    next();
-  } catch (err) {
-    req.err = err;
-    next(err);
-  }
-};
-
-export const deleteUserAndData = async (req, res, next) => {
-  try {
-    req.meta = { endpoint: "deleteUserAndData" };
-
-    const { email: _email, key } = req.params;
-
-    if (!_email || !key) {
-      throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS);
-    }
-
-    req.meta.email = _email;
-
-    if (key !== CONST_STRINGS.PASS_KEY) {
-      throw new Error(CONST_STRINGS.INVALD_PASS_KEY);
-    }
-
-    const email = validateEmail(_email);
-
-    await deleteUser(email, "email", false);
-
-    const responseMessage = CONST_STRINGS.USER_DELETED_SUCCESSFULLY;
-    const responseData = {
-      email,
-    };
-    req.data = {
-      statuscode: 200,
-      responseData: responseData || {},
-      responseMessage: responseMessage || "",
-    };
-
-    next();
-  } catch (err) {
-    req.err = err;
-    next(err);
-  }
-};
-
-export const getUserData = async (req, res, next) => {
-  try {
-    req.meta = { endpoint: "getUserData" };
-
-    const { email: _email, type, key } = req.params;
-    if (!_email || !key) {
-      throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS);
-    }
-
-    req.meta.email = _email;
-
-    const email = validateEmail(_email);
-
-    if (
-      key !== CONST_STRINGS.PASS_KEY ||
-      ![
-        CONST_STRINGS.TEST_USER_EMAIL,
-        CONST_STRINGS.TEST_SUB_USER_EMAIL,
-        CONST_STRINGS.TEST_ADMIN_EMAIL,
-      ].includes(email)
-    ) {
-      throw new Error(CONST_STRINGS.INVALD_PASS_KEY);
-    }
-
-    let collection;
-    if (type === "user") {
-      collection = User;
-    } else if (type === "sub-user") {
-      collection = AuthSubUser;
-    } else if (type === "admin") {
-      collection = AdminUser;
-    }
-    const user = await collection.findOne({ email });
-
-    if (!user) {
-      const error = new Error(CONST_STRINGS.USER_NOT_FOUND);
-      error.meta = { key };
-      throw error;
-    }
-
-    const responseMessage = CONST_STRINGS.USER_RETRIEVED_SUCCESSFULLY;
-    const responseData = {
-      user,
-    };
-    req.data = {
-      statuscode: 200,
-      responseData: responseData || {},
-      responseMessage: responseMessage || "",
-    };
-
-    next();
-  } catch (err) {
-    req.err = err;
-    next(err);
-  }
-};
-
-export const updateUserStatusWithKey = async (req, res, next) => {
-  try {
-    req.meta = { endpoint: "updateUserStatusWithKey" };
-
-    const { email, type, action, key } = req.body;
-
-    if ((!type || !(typeof action === "boolean"), !key)) {
-      throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS);
-    }
-
-    req.meta.email = email;
-
-    if (
-      key !== CONST_STRINGS.PASS_KEY ||
-      email !== CONST_STRINGS.TEST_USER_EMAIL
-    ) {
-      throw new Error(CONST_STRINGS.INVALD_PASS_KEY);
-    }
-
-    const user = await User.findOne({ email });
-    if (!user) throw new Error(CONST_STRINGS.USER_NOT_FOUND);
-
-    const { userId } = user;
-
-    let responseData;
-
-    if (type === "active") {
-      let license = await License.findOne({ userId });
-
-      license.isActive = action;
-      license = await license.save();
-      responseData = { isActive: license.isActive };
-    } else if (type === "block") {
-      user.isBlocked = action;
-      await user.save();
-      responseData = { isBlocked: user.isBlocked };
-    } else {
-      throw new Error(CONST_STRINGS.INVALID_ACTION_TYPE);
-    }
-
-    req.data = {
-      statuscode: 200,
-      responseData,
-      responseMessage: CONST_STRINGS.UPDATE_USER_STATUS_SUCCESS,
-    };
     next();
   } catch (err) {
     req.err = err;
