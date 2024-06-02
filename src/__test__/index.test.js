@@ -13,6 +13,8 @@ const mockUserData = {
   userRole: "user",
 };
 
+// Have Implemented Jest for Single API Only ie. get register code
+
 beforeAll(async () => {
   await mongoose.connect(ENV_VAR.MONGODB_URI, {
     useNewUrlParser: true,
