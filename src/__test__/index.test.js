@@ -2,11 +2,8 @@ import mongoose from "mongoose";
 import request from "supertest";
 import { CONST_STRINGS } from "../helpers/constants.js";
 import { ENV_VAR } from "../helpers/env.js";
-import app from "../index.js"; // Assuming `app` is your Express application
-import { User } from "../models/index.js"; // Assuming `User` model from mongoose
-import { hashPassword, generateCode } from "../helpers/authHelper.js"; // Assuming `hashPassword` function from your helpers
-
-// Mock data for testing
+import app from "../index.js";
+import { User } from "../models/index.js";
 const mockUserData = {
   email: "test@example.com",
   password: "Test@12345",
@@ -16,26 +13,21 @@ const mockUserData = {
   userRole: "user",
 };
 
-// Connect to MongoDB before running tests
 beforeAll(async () => {
   await mongoose.connect(ENV_VAR.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });
 
-  // Clear any existing users from the database before running tests
   await User.deleteMany({});
 });
 
-// Close MongoDB connection after all tests are done
 afterAll(async () => {
   await mongoose.connection.close();
 });
 
-// Test suite for getRegisterCode controller function
 describe("Testing getRegisterCode controller function", () => {
   beforeEach(async () => {
-    // Clear user collection before each test
     await User.deleteMany({});
   });
 
@@ -95,14 +87,12 @@ describe("Testing getRegisterCode controller function", () => {
       .send(invalidUserData)
       .set("Accept", "application/json");
 
-    // Expecting status code 400 and checking error message from req.data
-    expect(res.status).toBe(400); // Assuming error handling returns 400
+    expect(res.status).toBe(400); 
     expect(res.body.success).toBe(false);
     expect(res.body.error).toBe(CONST_STRINGS.CONFIRM_PASSWORD_DOES_NOT_MATCH_WITH_PASSWORD);
 
-    // Verify no user is created in the database
     const user = await User.findOne({ email: mockUserData.email });
-    expect(user).toBeFalsy(); // No user should be found
+    expect(user).toBeFalsy(); 
   });
 
   it("returns an error when email format is invalid", async () => {
@@ -113,14 +103,12 @@ describe("Testing getRegisterCode controller function", () => {
       .send(invalidEmailUserData)
       .set("Accept", "application/json");
 
-    // Expecting status code 400 and checking error message from req.data
-    expect(res.status).toBe(400); // Assuming error handling returns 400
+    expect(res.status).toBe(400); 
     expect(res.body.success).toBe(false);
     expect(res.body.error).toBe(CONST_STRINGS.INVALID_EMAIL_FORMAT);
 
-    // Verify no user is created in the database
     const user = await User.findOne({ email: invalidEmailUserData.email });
-    expect(user).toBeFalsy(); // No user should be found
+    expect(user).toBeFalsy();
   });
 
   it("returns an error when password does not meet complexity requirements", async () => {
@@ -131,16 +119,13 @@ describe("Testing getRegisterCode controller function", () => {
       .send(invalidPasswordUserData)
       .set("Accept", "application/json");
 
-    // Expecting status code 400 and checking error message from req.data
     expect(res.status).toBe(400); 
     expect(res.body.success).toBe(false);
     expect(res.body.error).toBe(CONST_STRINGS.PASSWORD_DOES_NOT_MEET_REQUIREMENTS);
 
-    // Verify no user is created in the database
     const user = await User.findOne({ email: invalidPasswordUserData.email });
-    expect(user).toBeFalsy(); // No user should be found
+    expect(user).toBeFalsy(); 
   });
 
-  // Add more test cases as needed for different scenarios
 });
 
