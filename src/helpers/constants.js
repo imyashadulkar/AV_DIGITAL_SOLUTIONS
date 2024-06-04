@@ -81,3 +81,7 @@ export const AUTH_ROUTES = {
   DELETE_USER:"/delete-user-data/:userId",
 };
 
+export const EXCEL_ROUTES = {
+GET_DATA_FROM_EXCEL:"/get-data-from-excel",
+};
+
