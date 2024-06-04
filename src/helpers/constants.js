@@ -52,6 +52,7 @@ export const BASE_ROUTES = {
   MODULE_ROUTES: "/module",
   ADMIN_ROUTES: "/admin",
   LOG_ROUTES: "/logs",
+  APP_APIS:"/crm",
 };
 
 
