@@ -1,7 +1,6 @@
 import xlsx from "xlsx";
-import csv from "csv-parser";
-import fs from "fs/promises"; // Use fs/promises for async file operations
-import { ExcelData } from "../models/index.js"; // Import your Mongoose model
+import csvParser from "csv-parser";
+import { ExcelData } from "../models/index.js";
 
 export const extractDataFromExcel = async (req, res, next) => {
   try {
@@ -18,30 +17,28 @@ export const extractDataFromExcel = async (req, res, next) => {
     }
 
     const excelFile = req.files.excelFile;
-    const filePath = `C:\Users\Admin\Desktop\RideEve${excelFile.name}`;
-
-    await excelFile.mv(filePath);
+    const buffer = excelFile.data; // Assuming file is uploaded in memory as a buffer
 
     let jsonData = [];
 
-    // Determine file type based on extension
+    // Determine file type based on content or extension
     if (excelFile.name.endsWith(".xlsx")) {
-      const workbook = xlsx.readFile(filePath);
+      const workbook = xlsx.read(buffer, { type: "buffer" });
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
       jsonData = xlsx.utils.sheet_to_json(worksheet);
     } else if (excelFile.name.endsWith(".csv")) {
       const results = [];
-      await new Promise((resolve, reject) => {
-        fs.createReadStream(filePath)
-          .pipe(csv())
-          .on("data", (data) => results.push(data))
-          .on("end", () => {
-            jsonData = results;
-            resolve();
-          })
-          .on("error", (err) => reject(err));
-      });
+      const stream = buffer
+        .toString()
+        .split("\n")
+        .map((line) => csvParser(line));
+
+      for await (const data of stream) {
+        results.push(data);
+      }
+
+      jsonData = results;
     } else {
       throw new Error(
         "Unsupported file format. Only Excel (.xlsx) or CSV files are supported."
@@ -51,17 +48,15 @@ export const extractDataFromExcel = async (req, res, next) => {
     // Save each entry to database
     const savedEntries = await ExcelData.create({ userId, data: jsonData });
 
-    // Clean up uploaded file after processing
-    fs.unlinkSync(filePath);
-
     req.data = {
-      statusCode: 200,
+      statuscode: 200,
       responseData: savedEntries,
       responseMessage: "Data extracted and saved successfully",
     };
 
     next();
   } catch (err) {
+    console.error("Error in extractDataFromExcel:", err);
     req.err = err;
     next(err);
   }
