@@ -64,7 +64,14 @@ export const getRegisterCode = async (req, res, next) => {
     } = req.body;
 
     // Check for missing required inputs
-    if (!_email || !password || !confirmPassword || !userName || !phoneNumber || !userRole) {
+    if (
+      !_email ||
+      !password ||
+      !confirmPassword ||
+      !userName ||
+      !phoneNumber ||
+      !userRole
+    ) {
       throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS);
     }
 
@@ -81,8 +88,11 @@ export const getRegisterCode = async (req, res, next) => {
 
     // Generate next short code
     const users = await User.find();
-    const shortCodes = users.map(user => Number(user?.shortCode?.split("ABSL")?.[1])).filter(value => !isNaN(value));
-    const nextShortCode = shortCodes.length > 0 ? Math.max(...shortCodes) + 1 : 1;
+    const shortCodes = users
+      .map((user) => Number(user?.shortCode?.split("ABSL")?.[1]))
+      .filter((value) => !isNaN(value));
+    const nextShortCode =
+      shortCodes.length > 0 ? Math.max(...shortCodes) + 1 : 1;
 
     // Generate userId and shortCode
     const userId = user ? user.userId : uuidv4();
@@ -104,7 +114,8 @@ export const getRegisterCode = async (req, res, next) => {
       body: {
         name: "Razzaq Shikalgar",
         intro: `Welcome to Your Product! Here is your OTP: ${OTP}`,
-        outro: "This OTP code is valid for 5 minutes. If you didn't request this OTP, please ignore this email.",
+        outro:
+          "This OTP code is valid for 5 minutes. If you didn't request this OTP, please ignore this email.",
       },
     };
 
@@ -634,6 +645,186 @@ export const logoutUser = async (req, res, next) => {
       responseMessage: responseMessage || "",
     };
 
+    next();
+  } catch (err) {
+    req.err = err;
+    next(err);
+  }
+};
+
+export const subUserLoginWithEmailPassword = async (req, res, next) => {
+  try {
+    req.meta = { endpoint: "subUserLoginWithEmailPassword" };
+    const { email, subUsername: _subUsername, password } = req.body;
+    const subUsername = _subUsername.replace(/\s/g, "");
+
+    if (!email || !subUsername || !password) {
+      throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS);
+    }
+
+    const authUser = await User.findOne({ email });
+
+    if (!authUser) {
+      const error = new Error(CONST_STRINGS.USER_NOT_FOUND);
+      error.meta = { email };
+      throw error;
+    }
+
+    const subUser = await AuthSubUser.findOne({
+      userId: authUser.userId,
+      subUsername,
+    });
+
+    if (!subUser) {
+      const error = new Error(CONST_STRINGS.SUB_USER_NOT_FOUND);
+      error.meta = { subUsername };
+      throw error;
+    }
+
+    const isPasswordValid = await comparePasswordWithHash(
+      password,
+      subUser.password
+    );
+
+    if (!isPasswordValid) {
+      const error = new Error(CONST_STRINGS.INVALID_CREDENTIALS);
+      error.meta = { subUsername };
+      throw error;
+    }
+
+    const role = CONST_STRINGS.AUTH_USER_ROLE;
+    const userId = authUser.userId;
+    const token = generateJwtToken({
+      userId,
+      email,
+      subUserId: subUser.subUserId,
+      role,
+      isAdmin: false,
+      isAuthUser: false,
+    });
+
+    res.cookie("jwt", token, getCookieOptions("login"));
+
+    const responseMessage = CONST_STRINGS.SUB_USER_LOGGED_IN_SUCCESSFULLY;
+    const responseData = {
+      subUserId: subUser.subUserId,
+      userId,
+      email,
+      role: CONST_STRINGS.AUTH_USER_ROLE,
+      isAuthUser: false,
+    };
+
+    req.data = {
+      statuscode: 200,
+      responseData: responseData || {},
+      responseMessage: responseMessage || "",
+    };
+
+    next();
+  } catch (err) {
+    req.err = err;
+    next(err);
+  }
+};
+
+export const createSubUser = async (req, res, next) => {
+  try {
+    req.meta = { endpoint: "createSubUser" };
+    const {
+      userId,
+      subUsername: _subUsername,
+      password,
+      confirmPassword,
+    } = req.body;
+    const subUsername = _subUsername.replace(/\s/g, "");
+    const subUser = await AuthSubUser.findOne({ userId, subUsername });
+    if (subUser) {
+      throw new Error(CONST_STRINGS.SUB_USER_NAME_ALREADY_EXISTS);
+    }
+    validatePassword(password, confirmPassword);
+    const subUserId = uuidv4();
+    const hashedPassword = await hashPassword(password);
+    const newSubUser = new AuthSubUser({
+      userId,
+      subUserId,
+      subUsername,
+      password: hashedPassword,
+    });
+    await newSubUser.save();
+    const responseMessage = CONST_STRINGS.SUB_USER_CREATED_SUCCESSFULLY;
+    const responseData = {
+      subUserId,
+    };
+    req.data = {
+      statuscode: 200,
+      responseData: responseData || {},
+      responseMessage: responseMessage || "",
+    };
+    next();
+  } catch (err) {
+    req.err = err;
+    next(err);
+  }
+};
+
+export const getSubUser = async (req, res, next) => {
+  try {
+    req.meta = { endpoint: "getSubUser" };
+    const { userId } = req.body;
+    const { subUserId } = req.params;
+    let responseData;
+    let responseMessage;
+    if (subUserId) {
+      const subUser = await AuthSubUser.findOne({ userId, subUserId });
+      responseData = {
+        subUserId: subUser.subUserId,
+        userName: subUser.subUsername,
+        createdAt: subUser.createdAt,
+        updatedAt: subUser.updatedAt,
+      };
+      responseMessage = CONST_STRINGS.SUB_USER_RETRIEVED;
+    } else {
+      const subUsers = await AuthSubUser.find({ userId });
+      responseData = subUsers.map((subUser) => ({
+        subUserId: subUser.subUserId,
+        userName: subUser.subUsername,
+        createdAt: subUser.createdAt,
+        updatedAt: subUser.updatedAt,
+      }));
+      responseMessage = CONST_STRINGS.SUB_USERS_RETRIEVED;
+    }
+    req.data = {
+      statuscode: 200,
+      responseData: responseData || [],
+      responseMessage: responseMessage || "",
+    };
+
+    next();
+  } catch (err) {
+    req.err = err;
+    next(err);
+  }
+};
+
+export const changeSubUserPassword = async (req, res, next) => {
+  try {
+    req.meta = { endpoint: "changeSubUserPassword" };
+    const { userId, subUserId, newPassword, confirmPassword } = req.body;
+    validatePassword(newPassword, confirmPassword);
+    const subUser = await AuthSubUser.findOne({ userId, subUserId });
+    if (!subUser) {
+      throw new Error(CONST_STRINGS.SUB_USER_NOT_FOUND);
+    }
+    const hashedPassword = await hashPassword(newPassword);
+    subUser.password = hashedPassword;
+    await subUser.save();
+    const responseMessage = CONST_STRINGS.PASSWORD_CHANGED_SUCCESSFULLY;
+    const responseData = {};
+    req.data = {
+      statuscode: 200,
+      responseData: responseData || {},
+      responseMessage: responseMessage || "",
+    };
     next();
   } catch (err) {
     req.err = err;

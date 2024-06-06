@@ -80,6 +80,10 @@ export const AUTH_ROUTES = {
   LOGOUT_USER: "/logout",
   UPDATE_USER:"/update-user-data/:userId",
   DELETE_USER:"/delete-user-data/:userId",
+  AUTH_SUB_USER_GENERATION: "/create-sub-user",
+  GET_SUB_USER: "/get-sub-user/:subUserId?",
+  CHANGE_SUB_USER_PASSWORD: "/change-sub-user-password",
+  SUB_USER_LOGIN_WITH_EMAIL_PASSWORD: "/sub-user-login-with-email-password",
 };
 
 export const EXCEL_ROUTES = {

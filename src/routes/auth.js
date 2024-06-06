@@ -3,13 +3,17 @@ import express from "express";
 import {
   changePassword,
   changePasswordWithCode,
+  changeSubUserPassword,
+  createSubUser,
   deleteUser,
   getForgotPasswordCode,
   getRegisterCode,
+  getSubUser,
   loginWithEmailPassword,
   logoutUser,
   registerWithCode,
   resendRegisterCode,
+  subUserLoginWithEmailPassword,
   updateUser,
   validateTokenResponse
 } from "../controllers/auth.js";
@@ -66,6 +70,28 @@ router.delete(
   successResponse
 );
 
-
+router.post(
+  AUTH_ROUTES.AUTH_SUB_USER_GENERATION,
+  verifyToken,
+  createSubUser,
+  successResponse
+);
+router.get(
+  AUTH_ROUTES.GET_SUB_USER,
+  verifyToken,
+  getSubUser,
+  successResponse
+);
+router.post(
+  AUTH_ROUTES.CHANGE_SUB_USER_PASSWORD,
+  verifyToken,
+  changeSubUserPassword,
+  successResponse
+);
+router.post(
+  AUTH_ROUTES.SUB_USER_LOGIN_WITH_EMAIL_PASSWORD,
+  subUserLoginWithEmailPassword,
+  successResponse
+);
 
 export default router;
