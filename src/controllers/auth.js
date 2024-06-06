@@ -13,7 +13,7 @@ import {
 } from "../helpers/authHelper.js";
 import { CONST_STRINGS, TYPES } from "../helpers/constants.js";
 import { ENV_VAR } from "../helpers/env.js";
-import { User } from "../models/index.js";
+import { User, AuthSubUser } from "../models/index.js";
 import sendEmail from "../middleware/sendemail.js";
 
 // Create a middleware function that verifies the token and sends back the user information
