@@ -7,34 +7,37 @@ export const CONST_STRINGS = {
   //auth
   USER_REGISTER_CODE_CREATED: "User register code sent successfully",
   EMAIL_ALREADY_VERIFIED: "The email address has already been verified.",
-  MAX_VERIFICATION_ATTEMPTS_REACHED: "You have reached the maximum number of verification attempts.",
+  MAX_VERIFICATION_ATTEMPTS_REACHED:
+    "You have reached the maximum number of verification attempts.",
   MAX_VERIFICATION_ATTEMPTS: "Maximum verification attempts exceeded.",
   VERIFICATION_CODE_INVALID: "The verification code provided is invalid.",
   VERIFICATION_CODE_EXPIRED: "The verification code has expired.",
-  EMAIL_VERIFIED_AND_USER_REGISTERED_SUCCESSFULLY: "Email verified and user registered successfully.",
+  EMAIL_VERIFIED_AND_USER_REGISTERED_SUCCESSFULLY:
+    "Email verified and user registered successfully.",
   EMAIL_NOT_VERIFIED: "The email address has not been verified.",
   INVALID_CREDENTIALS: "The credentials provided are invalid.",
   AUTH_USER_ROLE: "User authenticated with a role.",
   USER_LOGGED_IN_SUCCESSFULLY: "User logged in successfully.",
-  NEW_PASSWORD_IS_SAME_AS_OLD_PASSWORD: "The new password cannot be the same as the old password.",
+  NEW_PASSWORD_IS_SAME_AS_OLD_PASSWORD:
+    "The new password cannot be the same as the old password.",
   PASSWORD_CHANGED_SUCCESSFULLY: "Password changed successfully.",
-  FORGOT_PASSWORD_CODE_ALREADY_VERIFIED: "The forgot password code has already been verified.",
-  NEW_PASSWORD_MATCHES_OLD_PASSWORD: "The new password matches the old password.",
+  FORGOT_PASSWORD_CODE_ALREADY_VERIFIED:
+    "The forgot password code has already been verified.",
+  NEW_PASSWORD_MATCHES_OLD_PASSWORD:
+    "The new password matches the old password.",
   USER_LOGOUT_SUCCESSFULL: "User logged out successfully.",
   INVALID_PASS_KEY: "The pass key provided is invalid.",
   USER_NOT_FOUND: "User not found.",
   USER_DELETED_SUCCESSFULLY: "User deleted successfully.",
   USER_RETRIEVED_SUCCESSFULLY: "User retrieved successfully.",
-  ADMIN_USER_ROLE:"admin",
+  ADMIN_USER_ROLE: "admin",
   USER_UPDATED_SUCCESSFULLY: "User updated successfully.",
   USER_UPDATE_FAILED: "Failed to update user.",
   USER_DELETED_SUCCESSFULLY: "User deleted successfully.",
   USER_DELETE_FAILED: "Failed to delete user.",
-  CONFIRM_PASSWORD_DOES_NOT_MATCH_WITH_PASSWORD:"password does not match",
-  PASSWORD_DOES_NOT_MEET_REQUIREMENTS:"password do not match the requirement",
-  INVALID_EMAIL_FORMAT:"Invalid Email Format"
-
-
+  CONFIRM_PASSWORD_DOES_NOT_MATCH_WITH_PASSWORD: "password does not match",
+  PASSWORD_DOES_NOT_MEET_REQUIREMENTS: "password do not match the requirement",
+  INVALID_EMAIL_FORMAT: "Invalid Email Format",
 };
 
 export const TYPES = {
@@ -52,10 +55,8 @@ export const BASE_ROUTES = {
   MODULE_ROUTES: "/module",
   ADMIN_ROUTES: "/admin",
   LOG_ROUTES: "/logs",
-  APP_APIS:"/crm",
+  APP_APIS: "/crm",
 };
-
-
 
 export const ADMIN_ROUTES = {
   GET_ADMIN_LOGIN_CODE: "/get-admin-login-code",
@@ -64,7 +65,6 @@ export const ADMIN_ROUTES = {
   GET_ALL_USERS: "/get-all-users",
   GET_USER_BY_ID: "/get-user-by-id/:userId",
 };
-
 
 export const AUTH_ROUTES = {
   CHANGE_PASSWORD: "/change-password",
@@ -78,8 +78,8 @@ export const AUTH_ROUTES = {
   RESEND_REGISTER_CODE: "/resend-register-code",
   VERIFY_TOKEN: "/verify-token",
   LOGOUT_USER: "/logout",
-  UPDATE_USER:"/update-user-data/:userId",
-  DELETE_USER:"/delete-user-data/:userId",
+  UPDATE_USER: "/update-user-data/:userId",
+  DELETE_USER: "/delete-user-data/:userId",
   AUTH_SUB_USER_GENERATION: "/create-sub-user",
   GET_SUB_USER: "/get-sub-user/:subUserId?",
   CHANGE_SUB_USER_PASSWORD: "/change-sub-user-password",
@@ -87,6 +87,9 @@ export const AUTH_ROUTES = {
 };
 
 export const EXCEL_ROUTES = {
-GET_DATA_FROM_EXCEL:"/get-data-from-excel",
+  GET_DATA_FROM_EXCEL: "/get-data-from-excel",
 };
-
+export const LEADS_ROUTES = {
+  RETRIEVE_LEAD_BY_USING_ID: "/retrieve-lead-by-id",
+  RETRIEVE_ALL_LEADS: "/retrieve-all-leads",
+};

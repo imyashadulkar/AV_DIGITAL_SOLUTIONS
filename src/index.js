@@ -1,27 +1,38 @@
 // Import dependencies
-import express from "express"
-import mongoose from "mongoose"
-import cors from "cors"
-import cookieParser from "cookie-parser"
-import fileUpload from "express-fileupload"
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import fileUpload from "express-fileupload";
+import swaggerUi from "swagger-ui-express";
 
+import { swaggerDocs } from "./helpers/utils/swagger.js";
 // Import local modules
-import allRoutes from "./routes/index.js"
-import logger from "./helpers/logger.js"
+import allRoutes from "./routes/index.js";
+import logger from "./helpers/logger.js";
 
 // Import Environment Variables
-import { ENV_VAR } from "./helpers/env.js"
+import { ENV_VAR } from "./helpers/env.js";
+const { BASE_URL, VERSION, PORT } = ENV_VAR;
 
 // Create a new Express app instance
-const app = express()
+const app = express();
 
 // Configure the app to use JSON and URL-encoded data
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
-app.use(cookieParser())
-app.use(fileUpload({
-  useTempFiles: true,
-}))
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use(
+  fileUpload({
+    useTempFiles: true,
+  })
+);
+
+app.use(
+  `/${BASE_URL}/${VERSION}/api-docs`,
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerDocs /* { explorer: true } */)
+);
 
 // Enable CORS for allowed origins
 app.use(
@@ -29,7 +40,6 @@ app.use(
     // origin: (origin, callback) => {
     //   // Allow requests with no origin (like mobile apps or curl requests)
     //   if (!origin) return callback(null, true)
-
     //   // Check if the origin is allowed
     //   if (ENV_VAR.ALLOWED_ORIGINS.indexOf(origin) === -1) {
     //     // If the origin is not allowed, set the Access-Control-Allow-Origin header to null
@@ -40,10 +50,10 @@ app.use(
     // },
     // credentials: true // Set to allow credentials in the request
   })
-)
+);
 
 // Set the Base Url for the app
-app.use(`/${ENV_VAR.BASE_URL}/v1`, allRoutes)
+app.use(`/${ENV_VAR.BASE_URL}/v1`, allRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -53,33 +63,35 @@ app.use((err, req, res, next) => {
     // res.clearCookie("jwt", getCookieOptions("logout"))
     console.log("getCookieOptions");
   }
-  logger.error(err.message, err?.meta)
+  logger.error(err.message, err?.meta);
   // Set Status code based error type
-  res.status(400).json({ success: false, error: err.message })
+  res.status(400).json({ success: false, error: err.message });
 
   // Pass the error to the next error handling middleware
   // next(err);
-})
+});
 
 // Handle 404 errors
 app.use((req, res) => {
-  res.status(404).json({ message: "Route not found" })
-})
+  res.status(404).json({ message: "Route not found" });
+});
 
 // Connecting to the MongoDB Database and then Starting server
 if (!ENV_VAR.UNIT_TEST) {
   mongoose
     .connect(ENV_VAR.MONGODB_URI, {
       useNewUrlParser: true,
-      useUnifiedTopology: true
+      useUnifiedTopology: true,
     })
     .then(() => {
-      console.log("Connected to database")
+      console.log("Connected to database");
       app.listen(ENV_VAR.PORT, () => {
-        console.log(`Server started and listening on port ${ENV_VAR.PORT}`)
-      })
+        console.log(
+          `Server started, API docs at http://localhost:${PORT}/${BASE_URL}/${VERSION}/api-docs`
+        );
+      });
     })
-    .catch((err) => console.error("Error connecting to MongoDB", err))
+    .catch((err) => console.error("Error connecting to MongoDB", err));
 }
 
-export default app
+export default app;

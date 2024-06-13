@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import { version } from "mongoose";
 
 // import { post } from "./fetch_helper_node.js";
 dotenv.config({ path: ".env" });
@@ -11,6 +12,7 @@ const baseEnv = {
   SEND_CODE: process.env.SEND_CODE === "true",
   SEND_EMAIL: process.env.SEND_EMAIL === "true",
   MONGODB_URI: process.env.MONGODB_URI,
+  VERSION: process.env.version,
   JWT_SECRET: process.env.JWT_SECRET,
   JWT_EXPIRATION_IN_MINS: process.env.JWT_EXPIRATION_IN_MINS,
   VERIFICATION_CODE_EXPIRE_IN_MINS: process.env.VERIFICATION_CODE_EXPIRE_IN_MINS,

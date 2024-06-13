@@ -39,6 +39,8 @@
     "nodemailer": "^6.9.13",
     "path": "^0.12.7",
     "sequelize": "^6.37.3",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "uuid": "^9.0.0",
     "winston": "^3.9.0",
     "winston-mongodb": "^5.1.1",

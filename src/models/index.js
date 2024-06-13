@@ -2,6 +2,6 @@
 import { AdminUser } from "./AdminUser.js";
 import { AuthSubUser } from "./AuthSubUser.js";
 import { User } from "./AuthUser.js";
-import { ExcelData } from "./Lead.js";
+import { Lead } from "./Lead.js";
 
-export { AdminUser, User, AuthSubUser, ExcelData };
+export { AdminUser, User, AuthSubUser, Lead };
