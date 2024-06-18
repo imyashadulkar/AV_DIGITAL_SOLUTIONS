@@ -5,6 +5,7 @@ import {
   extractDataFromExcel,
   getAllLeads,
   getLeadById,
+  getLeadCharts,
 } from "../controllers/excelapi.js";
 import { EXCEL_ROUTES, LEADS_ROUTES } from "../helpers/constants.js";
 import { verifyToken } from "../middleware/auth.js";
@@ -333,6 +334,102 @@ router.get(
   LEADS_ROUTES.RETRIEVE_LEAD_BY_USING_ID,
   verifyToken,
   getLeadById,
+  successResponse
+);
+
+/**
+ * @swagger
+ * /crm/get-charts-for-leads:
+ *   get:
+ *     summary: Get charts for leads
+ *     description: Retrieve charts data for leads.
+ *     tags:
+ *       - Leads
+ *     responses:
+ *       200:
+ *         description: Charts data retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     chart1:
+ *                       type: object
+ *                       description: Chart 1 data
+ *                       properties:
+ *                         label:
+ *                           type: string
+ *                           description: Label for the chart
+ *                           example: "Leads by Source"
+ *                         values:
+ *                           type: array
+ *                           description: Values for the chart
+ *                           items:
+ *                             type: object
+ *                             properties:
+ *                               source:
+ *                                 type: string
+ *                                 description: Source of the leads
+ *                                 example: "Facebook"
+ *                               count:
+ *                                 type: number
+ *                                 description: Number of leads from the source
+ *                                 example: 10
+ *                         image:
+ *                           type: string
+ *                           description: Base64 encoded image of the chart
+ *                           example: "iVBORw0KGgoAAAANSUhEUgAAA..."
+ *                     chart2:
+ *                       type: object
+ *                       description: Chart 2 data
+ *                       properties:
+ *                         label:
+ *                           type: string
+ *                           description: Label for the chart
+ *                           example: "Leads by Status"
+ *                         values:
+ *                           type: array
+ *                           description: Values for the chart
+ *                           items:
+ *                             type: object
+ *                             properties:
+ *                               status:
+ *                                 type: string
+ *                                 description: Status of the leads
+ *                                 example: "Complete"
+ *                               count:
+ *                                 type: number
+ *                                 description: Number of leads with the status
+ *                                 example: 5
+ *                         image:
+ *                           type: string
+ *                           description: Base64 encoded image of the chart
+ *                           example: "iVBORw0KGgoAAAANSUhEUgAAA..."
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Internal server error"
+ */
+
+router.get(
+  LEADS_ROUTES.GET_CHARTS_FOR_LEADS,
+  verifyToken,
+  getLeadCharts,
   successResponse
 );
 

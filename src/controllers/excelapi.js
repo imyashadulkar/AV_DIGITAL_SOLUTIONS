@@ -2,6 +2,7 @@ import xlsx from "xlsx";
 import { Lead } from "../models/index.js";
 import { CONST_STRINGS } from "../helpers/constants.js";
 import { stripPrefix, stripValuePrefix } from "../helpers/apiHelper.js";
+import { createBarChart } from "../helpers/chartHelper.js";
 
 export const extractDataFromExcel = async (req, res, next) => {
   try {
@@ -114,3 +115,144 @@ export const getLeadById = async (req, res, next) => {
     next(err);
   }
 };
+
+export const getLeadCharts = async (req, res, next) => {
+  try {
+    const leads = await Lead.find();
+    console.log("Leads:", leads);
+
+    // Initialize data for charts
+    const leadsBySource = {};
+    const leadsByStatus = {};
+
+    // Count leads by source and status
+    leads.forEach((lead) => {
+      const source = lead.platform;
+      const status = lead.lead_status;
+
+      if (leadsBySource[source]) {
+        leadsBySource[source]++;
+      } else {
+        leadsBySource[source] = 1;
+      }
+
+      if (leadsByStatus[status]) {
+        leadsByStatus[status]++;
+      } else {
+        leadsByStatus[status] = 1;
+      }
+    });
+
+    // Prepare data for chart 1 (Leads by Source)
+    const chartData1 = {
+      labels: Object.keys(leadsBySource),
+      datasets: [
+        {
+          label: "Leads by Source",
+          data: Object.values(leadsBySource),
+          backgroundColor: "rgba(75, 192, 192, 0.6)",
+        },
+      ],
+    };
+
+    // Prepare data for chart 2 (Leads by Status)
+    const chartData2 = {
+      labels: Object.keys(leadsByStatus),
+      datasets: [
+        {
+          label: "Leads by Status",
+          data: Object.values(leadsByStatus),
+          backgroundColor: "rgba(153, 102, 255, 0.6)",
+        },
+      ],
+    };
+
+    // Create charts
+    const chart1Buffer = await createBarChart(chartData1);
+    const chart2Buffer = await createBarChart(chartData2);
+    console.log("chart1Buffer:", chart1Buffer);
+    console.log("chart2Buffer:", chart2);
+
+    // Encode charts to base64 to include in JSON response
+    const chart1Base64 = chart1Buffer.toString('base64');
+    const chart2Base64 = chart2Buffer.toString('base64');
+
+    res.status(200).json({
+      success: true,
+      data: {
+        chart1: {
+          label: chartData1.datasets[0].label,
+          values: chartData1.labels.map((label, index) => ({
+            source: label,
+            count: chartData1.datasets[0].data[index],
+          })),
+          image: chart1Base64,
+        },
+        chart2: {
+          label: chartData2.datasets[0].label,
+          values: chartData2.labels.map((label, index) => ({
+            status: label,
+            count: chartData2.datasets[0].data[index],
+          })),
+          image: chart2Base64,
+        },
+      },
+    });
+  } catch (err) {
+    console.error("Error in getLeadCharts:", err);
+    res.status(500).json({
+      success: false,
+      error: "Internal server error",
+    });
+  }
+};
+
+
+// export const getLeadCharts = async (req, res, next) => {
+//   try {
+//     req.data = { endpoint: "getLeadCharts" };
+
+//     const leads = await Lead.find();
+
+//     const chartData = {
+//       labels: [],
+//       datasets: [
+//         {
+//           label: "Leads by Date",
+//           data: [],
+//           backgroundColor: "rgba(75, 192, 192, 0.6)",
+//         },
+//       ],
+//     };
+
+//     const leadsByDate = {};
+//     leads.forEach((lead) => {
+//       const date = new Date(lead.created_time).toISOString().split("T")[0];
+//       if (leadsByDate[date]) {
+//         leadsByDate[date]++;
+//       } else {
+//         leadsByDate[date] = 1;
+//       }
+//     });
+
+//     // Populate chart data
+//     Object.keys(leadsByDate).forEach((date) => {
+//       chartData.labels.push(date);
+//       chartData.datasets[0].data.push(leadsByDate[date]);
+//     });
+
+//     // Create bar chart
+//     const barChartBuffer = await createBarChart(chartData);
+
+//     // Create pie chart (Optional: if needed)
+//     const pieChartBuffer = await createPieChart(chartData);
+
+//     req.data.statuscode = 200;
+//     req.data.responseData = { barChartBuffer, pieChartBuffer };
+//     next();
+//   } catch (err) {
+//     console.error("Error in getLeadCharts:", err);
+//     req.err = err;
+//     next(err);
+//   }
+// };

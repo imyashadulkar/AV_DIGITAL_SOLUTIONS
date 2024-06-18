@@ -92,4 +92,5 @@ export const EXCEL_ROUTES = {
 export const LEADS_ROUTES = {
   RETRIEVE_LEAD_BY_USING_ID: "/retrieve-lead-by-id",
   RETRIEVE_ALL_LEADS: "/retrieve-all-leads",
+  GET_CHARTS_FOR_LEADS: "/get-charts-for-leads",
 };

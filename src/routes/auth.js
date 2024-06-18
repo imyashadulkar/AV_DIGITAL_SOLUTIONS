@@ -51,11 +51,11 @@ router.post(AUTH_ROUTES.REGISTER_WITH_CODE, registerWithCode, successResponse);
  *               email:
  *                 type: string
  *                 format: email
- *                 example: user@example.com
+ *                 example: ayubshikalgar2@gmail.com
  *               password:
  *                 type: string
  *                 format: password
- *                 example: "password123"
+ *                 example: "Bca@12345"
  *     responses:
  *       200:
  *         description: User logged in successfully
