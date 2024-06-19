@@ -18,7 +18,7 @@ const swaggerOptions = {
       ...(ENV === "local"
         ? [
             {
-              url: `http://localhost:3204/${BASE_URL}/${VERSION}`,
+              url: `https://av-digital-solutions.onrender.com/${BASE_URL}/${VERSION}`,
               description: "Local server, Version: V1 ",
             },
           ]

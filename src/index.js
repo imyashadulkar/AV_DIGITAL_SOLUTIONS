@@ -28,11 +28,14 @@ app.use(
   })
 );
 
-app.use(
-  `/${BASE_URL}/${VERSION}/api-docs`,
-  swaggerUi.serve,
-  swaggerUi.setup(swaggerDocs /* { explorer: true } */)
-);
+// app.use(
+//   `/${BASE_URL}/${VERSION}/api-docs`,
+//   swaggerUi.serve,
+//   swaggerUi.setup(swaggerDocs /* { explorer: true } */)
+// );
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
 
 // Enable CORS for allowed origins
 app.use(
@@ -87,7 +90,7 @@ if (!ENV_VAR.UNIT_TEST) {
       console.log("Connected to database");
       app.listen(ENV_VAR.PORT, () => {
         console.log(
-          `Server started, API docs at http://localhost:${PORT}/${BASE_URL}/${VERSION}/api-docs`
+          `Server started, API docs at http://localhost:${PORT}/api-docs`
         );
       });
     })
