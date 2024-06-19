@@ -20,7 +20,7 @@ const baseEnv = {
   CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
   CLOUDINARY_API_SECRET:  process.env.CLOUDINARY_API_SECRET,
   GOOGLE_SERVICE_ACCOUNT_KEY_FILE:  process.env.GOOGLE_SERVICE_ACCOUNT_KEY_FILE,
-  GOOGLE_SHEET_ID:  process.env.GOOGLE_SHEET_ID
+  GOOGLE_SHEET_ID:  process.env.GOOGLE_SHEET_ID 
 };
 
 const getSecrectsAndVariablesFromENV = () => {
