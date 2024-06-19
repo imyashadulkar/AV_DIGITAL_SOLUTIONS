@@ -5,6 +5,7 @@ import {
   extractDataFromExcel,
   getAllLeads,
   getLeadById,
+  saveAgentDetails,
   saveContactDetails,
 } from "../controllers/excelapi.js";
 import {
@@ -533,10 +534,111 @@ router.get(
  *                   example: "Internal Server Error."
  */
 
-
 router.post(
   GOOGLE_SHEETS_API.SAVE_CONTACT_DETAILS,
   saveContactDetails,
+  successResponse
+);
+
+/**
+ * @swagger
+ * /crm/save-agent-details:
+ *   post:
+ *     summary: Save contact details
+ *     description: Save contact details to the database and append the data to a Google Sheet.
+ *     tags:
+ *       - Contacts
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Name of the contact.
+ *                 example: "John Doe"
+ *               mobileNumber:
+ *                 type: number
+ *                 description: Mobile number of the contact.
+ *                 example: 1234567890
+ *               emailId:
+ *                 type: string
+ *                 description: Email ID of the contact.
+ *                 example: "john.doe@example.com"
+ *               message:
+ *                 type: string
+ *                 description: Message from the contact.
+ *                 example: "I am interested in your services."
+ *     responses:
+ *       201:
+ *         description: Contact details saved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Contact details saved successfully."
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       description: Unique identifier of the contact.
+ *                       example: "60d5f7f8f6e8b40f9c9e75c1"
+ *                     name:
+ *                       type: string
+ *                       description: Name of the contact.
+ *                       example: "John Doe"
+ *                     mobileNumber:
+ *                       type: number
+ *                       description: Mobile number of the contact.
+ *                       example: 1234567890
+ *                     emailId:
+ *                       type: string
+ *                       description: Email ID of the contact.
+ *                       example: "john.doe@example.com"
+ *                     message:
+ *                       type: string
+ *                       description: Message from the contact.
+ *                       example: "I am interested in your services."
+ *       400:
+ *         description: Bad request. Missing required inputs or invalid data format.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Missing required inputs."
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Internal Server Error."
+ */
+
+router.post(
+  GOOGLE_SHEETS_API.SAVE_AGENT_DETAILS,
+  saveAgentDetails,
   successResponse
 );
 

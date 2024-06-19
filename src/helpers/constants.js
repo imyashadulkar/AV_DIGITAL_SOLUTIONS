@@ -96,5 +96,6 @@ export const LEADS_ROUTES = {
 };
 
 export const GOOGLE_SHEETS_API = {
-  SAVE_CONTACT_DETAILS: '/save-contact-details',
+  SAVE_CONTACT_DETAILS: "/save-contact-details",
+  SAVE_AGENT_DETAILS: "/save-agent-details",
 };

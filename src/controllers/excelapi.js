@@ -116,7 +116,7 @@ export const saveContactDetails = async (req, res, next) => {
 
     // Prepare data for Google Sheets
     const auth = new google.auth.GoogleAuth({
-      keyFile: ENV_VAR.GOOGLE_SERVICE_ACCOUNT_KEY_FILE,
+      keyFile: "amazing-limiter-426914-q3-e20d2033e8d1.json",
       scopes: ["https://www.googleapis.com/auth/spreadsheets"],
     });
 
@@ -148,6 +148,77 @@ export const saveContactDetails = async (req, res, next) => {
         name: "I'm Excel Here's a new update for you",
         intro: `Here is the new query from user Mobile Number: ${savedContact.mobileNumber}`,
         outro: "Thank you , Yash",
+      },
+    };
+
+    sendEmail(emailData);
+
+    req.data = {
+      statuscode: 201,
+      responseMessage: CONST_STRINGS.CONTACT_SAVED_SUCCESS,
+      responseData: {
+        savedContact,
+      },
+    };
+
+    next();
+  } catch (err) {
+    console.error("Error in saveContactDetails:", err);
+    req.err = err;
+    next(err);
+  }
+};
+
+export const saveAgentDetails = async (req, res, next) => {
+  try {
+    req.data = { endpoint: "saveContactDetails" };
+
+    const { name, mobileNumber, emailId, message } = req.body;
+
+    // Save contact details to MongoDB
+    const newContact = new Contact({
+      name,
+      mobileNumber,
+      emailId,
+      message,
+    });
+
+    const savedContact = await newContact.save();
+
+    // Prepare data for Google Sheets
+    const auth = new google.auth.GoogleAuth({
+      keyFile: "amazing-limiter-426914-q3-e20d2033e8d1.json",
+      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+    });
+
+    const client = await auth.getClient();
+    const spreadsheetId = ENV_VAR.GOOGLE_SHEET_ID;
+    const sheetName = "AV_Digital_PDF_AGENT_June_2024"; // Change if you have a different sheet name
+
+    const sheetsApi = google.sheets({ version: "v4", auth: client });
+
+    const values = [
+      [name, mobileNumber, emailId, message, new Date().toISOString()],
+    ];
+
+    const resource = {
+      values,
+    };
+
+    sheetsApi.spreadsheets.values.append({
+      spreadsheetId,
+      range: `${sheetName}!A:E`,
+      valueInputOption: "RAW",
+      resource,
+    });
+
+    const emailData = {
+      to: emailId,
+      subject: "Thank you Agents for registering with us !!",
+      body: {
+        name: "AV Digital Solutions",
+        intro: "Greetings from AV Digital Solutions, Thank you for showing Interest in AV Digital Solutions.",
+        outro: "Thank you , Regards AV Digital Solutions",
       },
     };
 

@@ -81,6 +81,13 @@ app.use((req, res) => {
 
 // Connecting to the MongoDB Database and then Starting server
 if (!ENV_VAR.UNIT_TEST) {
+  let serverUrl = "";
+  if (ENV_VAR.ENV === "local") {
+    serverUrl = `http://localhost:${ENV_VAR.PORT}`;
+  } else {
+    serverUrl = `https://av-digital-solutions.onrender.com`;
+  }
+
   mongoose
     .connect(ENV_VAR.MONGODB_URI, {
       useNewUrlParser: true,
@@ -90,11 +97,12 @@ if (!ENV_VAR.UNIT_TEST) {
       console.log("Connected to database");
       app.listen(ENV_VAR.PORT, () => {
         console.log(
-          `Server started, API docs at http://localhost:${PORT}/api-docs`
+          `Server started, API docs at ${serverUrl}/${BASE_URL}/${VERSION}/api-docs`
         );
       });
     })
     .catch((err) => console.error("Error connecting to MongoDB", err));
 }
+
 
 export default app;

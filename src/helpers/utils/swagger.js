@@ -18,12 +18,18 @@ const swaggerOptions = {
       ...(ENV === "local"
         ? [
             {
-              url: `https://av-digital-solutions.onrender.com/${BASE_URL}/${VERSION}`,
-              description: "Local server, Version: V1 ",
+              url: `http://localhost:80/${BASE_URL}/${VERSION}`,
+              description: "Local server, Version: V1",
             },
           ]
-        : []),
+        : [
+            {
+              url: `https://av-digital-solutions.onrender.com/${BASE_URL}/${VERSION}`,
+              description: "Deployed server, Version: V1",
+            },
+          ]),
     ],
+
     components: {
       securitySchemes: {
         jwtCookieAuth: {
