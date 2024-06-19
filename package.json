@@ -5,8 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "nodemon src/index.js",
-    "server": "node src/index.js",
+    "start": "node src/index.js",
     "test": "set UNIT_TEST=true&&set NODE_OPTIONS=--experimental-vm-modules&&npx jest --verbose --detectOpenHandles --forceExit",
     "test-linux": "UNIT_TEST=true NODE_OPTIONS=--experimental-vm-modules npx jest --verbose --detectOpenHandles --forceExit",
     "lint": "eslint . --fix",

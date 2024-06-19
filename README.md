@@ -12,6 +12,8 @@ For ENV file contact me 9167310023
 The project is organized into various folders, each serving a specific function in the authentication system. The structure can be visualized in the provided image.
 
 ## Getting Started
+    // "start": "nodemon src/index.js",
+
 
 To run the project, execute the following command:
 
