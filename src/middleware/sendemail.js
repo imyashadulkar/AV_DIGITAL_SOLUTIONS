@@ -12,8 +12,8 @@ const transporter = nodemailer.createTransport({
 const mailGenerator = new Mailgen({
   theme: "salted",
   product: {
-    name: "Heyy !! This is the OTP for Ride-Eve Assignment",
-    link: "google.com",
+    name: "Razzaq Shikalgar@Backend Developer",
+    link: "https://docs.google.com/spreadsheets/d/1bhfPogIEFQA94lUAwI-u9TUsTJ5xjvQ6pDFRGKJ3GD0/edit?pli=1&gid=0#gid=0",
     logo: "",
   },
 });

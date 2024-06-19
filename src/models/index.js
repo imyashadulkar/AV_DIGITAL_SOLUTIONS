@@ -3,5 +3,6 @@ import { AdminUser } from "./AdminUser.js";
 import { AuthSubUser } from "./AuthSubUser.js";
 import { User } from "./AuthUser.js";
 import { Lead } from "./Lead.js";
+import { Contact } from "./postToSheet.js";
 
-export { AdminUser, User, AuthSubUser, Lead };
+export { AdminUser, User, AuthSubUser, Lead ,Contact };

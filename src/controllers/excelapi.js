@@ -1,8 +1,14 @@
 import xlsx from "xlsx";
-import { Lead } from "../models/index.js";
+import { Lead, Contact } from "../models/index.js";
 import { CONST_STRINGS } from "../helpers/constants.js";
 import { stripPrefix, stripValuePrefix } from "../helpers/apiHelper.js";
-import { createBarChart } from "../helpers/chartHelper.js";
+import { google } from "googleapis";
+import sendEmail from "../middleware/sendemail.js";
+
+const sheets = google.sheets("v4");
+import { ENV_VAR } from "../helpers/env.js";
+
+// import { createBarChart } from "../helpers/chartHelper.js";
 
 export const extractDataFromExcel = async (req, res, next) => {
   try {
@@ -92,6 +98,77 @@ export const getAllLeads = async (req, res, next) => {
   }
 };
 
+export const saveContactDetails = async (req, res, next) => {
+  try {
+    req.data = { endpoint: "saveContactDetails" };
+
+    const { name, mobileNumber, emailId, message } = req.body;
+
+    // Save contact details to MongoDB
+    const newContact = new Contact({
+      name,
+      mobileNumber,
+      emailId,
+      message,
+    });
+
+    const savedContact = await newContact.save();
+
+    // Prepare data for Google Sheets
+    const auth = new google.auth.GoogleAuth({
+      keyFile: ENV_VAR.GOOGLE_SERVICE_ACCOUNT_KEY_FILE,
+      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+    });
+
+    const client = await auth.getClient();
+    const spreadsheetId = ENV_VAR.GOOGLE_SHEET_ID;
+    const sheetName = "AV_Digital_PDF_June_2024"; // Change if you have a different sheet name
+
+    const sheetsApi = google.sheets({ version: "v4", auth: client });
+
+    const values = [
+      [name, mobileNumber, emailId, message, new Date().toISOString()],
+    ];
+
+    const resource = {
+      values,
+    };
+
+    sheetsApi.spreadsheets.values.append({
+      spreadsheetId,
+      range: `${sheetName}!A:E`,
+      valueInputOption: "RAW",
+      resource,
+    });
+
+    const emailData = {
+      to: "hey@avdigitalsolution.in",
+      subject: "Hey !! yash, here's a new registration",
+      body: {
+        name: "I'm Excel Here's a new update for you",
+        intro: `Here is the new query from user Mobile Number: ${savedContact.mobileNumber}`,
+        outro: "Thank you , Yash",
+      },
+    };
+
+    sendEmail(emailData);
+
+    req.data = {
+      statuscode: 201,
+      responseMessage: CONST_STRINGS.CONTACT_SAVED_SUCCESS,
+      responseData: {
+        savedContact,
+      },
+    };
+
+    next();
+  } catch (err) {
+    console.error("Error in saveContactDetails:", err);
+    req.err = err;
+    next(err);
+  }
+};
+
 export const getLeadById = async (req, res, next) => {
   try {
     req.data = { endpoint: "getLeadById" };
@@ -116,97 +193,96 @@ export const getLeadById = async (req, res, next) => {
   }
 };
 
-export const getLeadCharts = async (req, res, next) => {
-  try {
-    const leads = await Lead.find();
-    console.log("Leads:", leads);
+// export const getLeadCharts = async (req, res, next) => {
+//   try {
+//     const leads = await Lead.find();
+//     console.log("Leads:", leads);
 
-    // Initialize data for charts
-    const leadsBySource = {};
-    const leadsByStatus = {};
+//     // Initialize data for charts
+//     const leadsBySource = {};
+//     const leadsByStatus = {};
 
-    // Count leads by source and status
-    leads.forEach((lead) => {
-      const source = lead.platform;
-      const status = lead.lead_status;
+//     // Count leads by source and status
+//     leads.forEach((lead) => {
+//       const source = lead.platform;
+//       const status = lead.lead_status;
 
-      if (leadsBySource[source]) {
-        leadsBySource[source]++;
-      } else {
-        leadsBySource[source] = 1;
-      }
+//       if (leadsBySource[source]) {
+//         leadsBySource[source]++;
+//       } else {
+//         leadsBySource[source] = 1;
+//       }
 
-      if (leadsByStatus[status]) {
-        leadsByStatus[status]++;
-      } else {
-        leadsByStatus[status] = 1;
-      }
-    });
+//       if (leadsByStatus[status]) {
+//         leadsByStatus[status]++;
+//       } else {
+//         leadsByStatus[status] = 1;
+//       }
+//     });
 
-    // Prepare data for chart 1 (Leads by Source)
-    const chartData1 = {
-      labels: Object.keys(leadsBySource),
-      datasets: [
-        {
-          label: "Leads by Source",
-          data: Object.values(leadsBySource),
-          backgroundColor: "rgba(75, 192, 192, 0.6)",
-        },
-      ],
-    };
+//     // Prepare data for chart 1 (Leads by Source)
+//     const chartData1 = {
+//       labels: Object.keys(leadsBySource),
+//       datasets: [
+//         {
+//           label: "Leads by Source",
+//           data: Object.values(leadsBySource),
+//           backgroundColor: "rgba(75, 192, 192, 0.6)",
+//         },
+//       ],
+//     };
 
-    // Prepare data for chart 2 (Leads by Status)
-    const chartData2 = {
-      labels: Object.keys(leadsByStatus),
-      datasets: [
-        {
-          label: "Leads by Status",
-          data: Object.values(leadsByStatus),
-          backgroundColor: "rgba(153, 102, 255, 0.6)",
-        },
-      ],
-    };
+//     // Prepare data for chart 2 (Leads by Status)
+//     const chartData2 = {
+//       labels: Object.keys(leadsByStatus),
+//       datasets: [
+//         {
+//           label: "Leads by Status",
+//           data: Object.values(leadsByStatus),
+//           backgroundColor: "rgba(153, 102, 255, 0.6)",
+//         },
+//       ],
+//     };
 
-    // Create charts
-    const chart1Buffer = await createBarChart(chartData1);
-    const chart2Buffer = await createBarChart(chartData2);
-    console.log("chart1Buffer:", chart1Buffer);
-    console.log("chart2Buffer:", chart2);
+//     // Create charts
+//     const chart1Buffer = await createBarChart(chartData1);
+//     const chart2Buffer = await createBarChart(chartData2);
+//     console.log("chart1Buffer:", chart1Buffer);
+//     console.log("chart2Buffer:", chart2);
 
-    // Encode charts to base64 to include in JSON response
-    const chart1Base64 = chart1Buffer.toString('base64');
-    const chart2Base64 = chart2Buffer.toString('base64');
+//     // Encode charts to base64 to include in JSON response
+//     const chart1Base64 = chart1Buffer.toString('base64');
+//     const chart2Base64 = chart2Buffer.toString('base64');
 
-    res.status(200).json({
-      success: true,
-      data: {
-        chart1: {
-          label: chartData1.datasets[0].label,
-          values: chartData1.labels.map((label, index) => ({
-            source: label,
-            count: chartData1.datasets[0].data[index],
-          })),
-          image: chart1Base64,
-        },
-        chart2: {
-          label: chartData2.datasets[0].label,
-          values: chartData2.labels.map((label, index) => ({
-            status: label,
-            count: chartData2.datasets[0].data[index],
-          })),
-          image: chart2Base64,
-        },
-      },
-    });
-  } catch (err) {
-    console.error("Error in getLeadCharts:", err);
-    res.status(500).json({
-      success: false,
-      error: "Internal server error",
-    });
-  }
-};
-
+//     res.status(200).json({
+//       success: true,
+//       data: {
+//         chart1: {
+//           label: chartData1.datasets[0].label,
+//           values: chartData1.labels.map((label, index) => ({
+//             source: label,
+//             count: chartData1.datasets[0].data[index],
+//           })),
+//           image: chart1Base64,
+//         },
+//         chart2: {
+//           label: chartData2.datasets[0].label,
+//           values: chartData2.labels.map((label, index) => ({
+//             status: label,
+//             count: chartData2.datasets[0].data[index],
+//           })),
+//           image: chart2Base64,
+//         },
+//       },
+//     });
+//   } catch (err) {
+//     console.error("Error in getLeadCharts:", err);
+//     res.status(500).json({
+//       success: false,
+//       error: "Internal server error",
+//     });
+//   }
+// };
 
 // export const getLeadCharts = async (req, res, next) => {
 //   try {

@@ -94,3 +94,7 @@ export const LEADS_ROUTES = {
   RETRIEVE_ALL_LEADS: "/retrieve-all-leads",
   GET_CHARTS_FOR_LEADS: "/get-charts-for-leads",
 };
+
+export const GOOGLE_SHEETS_API = {
+  SAVE_CONTACT_DETAILS: '/save-contact-details',
+};
