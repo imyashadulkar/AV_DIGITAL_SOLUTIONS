@@ -633,7 +633,7 @@ router.post(
 
 /**
  * @swagger
- * /auth/update-user:
+ * /auth/update-user-data-{userId}:
  *   put:
  *     summary: Update User
  *     description: Updates user information.
@@ -663,7 +663,7 @@ router.post(
  *       500:
  *         $ref: '#/components/responses/InternalServerError'
  */
-
+//TODO swagger update
 router.put(AUTH_ROUTES.UPDATE_USER, verifyToken, updateUser, successResponse);
 
 /**
@@ -690,7 +690,7 @@ router.put(AUTH_ROUTES.UPDATE_USER, verifyToken, updateUser, successResponse);
  *       500:
  *         $ref: '#/components/responses/InternalServerError'
  */
-
+//TODO swagger update
 router.delete(
   AUTH_ROUTES.DELETE_USER,
   verifyToken,
@@ -740,7 +740,7 @@ router.post(
 
 /**
  * @swagger
- * /auth/sub-user/{subUserId}:
+ * /auth/{subUserId}:
  *   get:
  *     summary: Get Sub User
  *     description: Retrieves information about a sub-user.
@@ -811,7 +811,7 @@ router.get(AUTH_ROUTES.GET_SUB_USER, verifyToken, getSubUser, successResponse);
 
 /**
  * @swagger
- * /auth/sub-user/{subUserId}/permissions:
+ * /auth/update-sub-user-permission:
  *   put:
  *     summary: Update Sub User Permissions
  *     description: Updates permissions for a sub-user.
@@ -913,7 +913,7 @@ router.post(
 
 /**
  * @swagger
- * /auth/sub-user/{subUserId}/permissions:
+ * /auth/get-sub-user-permission/{subUserId}:
  *   get:
  *     summary: Get Sub User Permissions
  *     description: Retrieves permissions of a sub-user.
@@ -976,7 +976,7 @@ router.get(
 
 /**
  * @swagger
- * /auth/sub-user/{subUserId}/password:
+ * /auth/change-sub-user-password/{subUserId}:
  *   put:
  *     summary: Change Sub User Password
  *     description: Changes the password of a sub-user.
@@ -1052,7 +1052,7 @@ router.post(
 
 /**
  * @swagger
- * /auth/login-with-email-password-admin:
+ * /auth/sub-user-login-with-email-password:
  *   post:
  *     summary: Sub User Login with Email and Password
  *     description: Logs in a sub-user with email and password credentials.

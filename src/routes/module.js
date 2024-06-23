@@ -15,7 +15,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /auth/organization:
+ * /module/set-organization:
  *   post:
  *     summary: Set Organization
  *     description: Creates or updates organization details for a user.
@@ -185,7 +185,7 @@ router.post(
 
 /**
  * @swagger
- * /auth/organization:
+ * /module/get-organization:
  *   get:
  *     summary: Get Organization
  *     description: Retrieves organization details for a user.

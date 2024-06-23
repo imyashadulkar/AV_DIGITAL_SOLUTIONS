@@ -22,7 +22,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /crm/get-admin-login-code:
+ * /admin/get-admin-login-code:
  *   post:
  *     summary: Get Admin Login Code
  *     description: Sends an OTP verification code to the admin user's email for login.
@@ -134,7 +134,7 @@ router.post(
 
 /**
  * @swagger
- * /crm/admin-login-with-code:
+ * /admin/admin-login-with-code:
  *   post:
  *     summary: Admin Login with Code
  *     description: Authenticates an admin user using their email, password, and a verification code.
@@ -258,7 +258,7 @@ router.post(
 
 /**
  * @swagger
- * /crm/login-email-password-admin:
+ * /admin/login-with-email-password-admin:
  *   post:
  *     summary: Admin Login with Email and Password
  *     description: Authenticates an admin user using their email and password.
@@ -378,7 +378,7 @@ router.post(
 
 /**
  * @swagger
- * /crm/get-all-users:
+ * /admin/get-all-users:
  *   get:
  *     summary: Get All Users
  *     description: Retrieves all users, separating them into registered and unregistered categories.
@@ -509,7 +509,7 @@ router.get(
 
 /**
  * @swagger
- * /crm/get-user-by-id/{userId}:
+ * /admin/get-user-by-id/{userId}:
  *   get:
  *     summary: Get User by ID
  *     description: Retrieves user details by user ID.
@@ -646,7 +646,7 @@ router.get(
 
 /**
  * @swagger
- * /crm/set-license-data/{endUserId}:
+ * /admin/set-license-data/{endUserId}:
  *   post:
  *     summary: Set License Data by User ID
  *     description: Sets license data for a user identified by user ID.
@@ -773,7 +773,7 @@ router.post(
 
 /**
  * @swagger
- * /crm/get-all-user-licence:
+ * /admin/get-all-users-license-data:
  *   get:
  *     summary: Get All User Licenses
  *     description: Retrieves license details for all users.
@@ -853,7 +853,7 @@ router.get(
 
 /**
  * @swagger
- * /crm/get-user-license-detail/{userId}:
+ * /admin/get-user-license-detail/{userId}:
  *   get:
  *     summary: Get User License Detail by User ID
  *     description: Retrieves license details for a user identified by user ID.
@@ -956,7 +956,7 @@ router.get(
 
 /**
  * @swagger
- * /crm/update-user-status:
+ * /admin/update-user-status:
  *   patch:
  *     summary: Update User Status
  *     description: Updates various status types (active, block, timezone, shortCode) for a user.
@@ -1072,15 +1072,28 @@ router.post(
 
 /**
  * @swagger
- * /crm/get-all-user-licence:
- *   get:
- *     summary: Get All User Licenses
- *     description: Retrieves license details for all users.
+ * /auth/logout-admin:
+ *   post:
+ *     summary: Logout User
+ *     description: Logs out the currently authenticated user by clearing the JWT cookie.
  *     tags:
- *       - License Management
+ *       - Authentication
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 example: "user123"
+ *                 description: The ID of the user to logout.
  *     responses:
  *       200:
- *         description: User licenses retrieved successfully
+ *         description: User logged out successfully
  *         content:
  *           application/json:
  *             schema:
@@ -1091,44 +1104,18 @@ router.post(
  *                   example: 200
  *                   description: HTTP status code of the response.
  *                 responseData:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       userId:
- *                         type: string
- *                         example: "user123"
- *                         description: The ID of the user.
- *                       currentValidity:
- *                         type: string
- *                         example: "2024-12-31"
- *                         description: The current validity date of the license.
- *                       validityLastUpdatedAt:
- *                         type: string
- *                         example: "2024-06-25T08:30:00.000Z"
- *                         description: The date and time when validity was last updated.
- *                       previousValidity:
- *                         type: object
- *                         example: {}
- *                         description: Map of previous validity periods (if available).
- *                       approvedBy:
- *                         type: string
- *                         example: "John Doe"
- *                         description: The name of the approver for the license.
- *                       orderId:
- *                         type: string
- *                         example: "ORD123456"
- *                         description: The ID of the order related to the license.
- *                       approverRemarks:
- *                         type: string
- *                         example: "Approved for next year renewal."
- *                         description: Remarks provided by the approver.
+ *                   type: object
+ *                   properties:
+ *                     userId:
+ *                       type: string
+ *                       example: "user123"
+ *                       description: The ID of the logged-out user.
  *                 responseMessage:
  *                   type: string
- *                   example: "User licenses retrieved successfully."
+ *                   example: "User logged out successfully."
  *                   description: A message indicating the outcome of the operation.
- *       500:
- *         description: Internal server error
+ *       400:
+ *         description: Bad request, missing required inputs
  *         content:
  *           application/json:
  *             schema:
@@ -1139,7 +1126,11 @@ router.post(
  *                   example: false
  *                 error:
  *                   type: string
- *                   example: "Internal server error."
+ *                   example: "Missing required inputs."
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 
 router.post(
