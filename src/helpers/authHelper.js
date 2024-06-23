@@ -170,3 +170,15 @@ export const validateChangeEmail = async (
     throw error;
   }
 };
+
+export const validatePermission = (userIds, userInfo) => {
+  if (
+    !userInfo.isAdmin &&
+    !userIds.some((userId) => userId === userInfo.userId)
+  ) {
+    throw new CustomError(
+      resolveMessage(Resource.SUPPORT_TICKET, ResourceStatus.FORBIDDEN),
+      StatusCode.FORBIDDEN_403
+    );
+  }
+};

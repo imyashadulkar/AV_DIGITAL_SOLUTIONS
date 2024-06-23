@@ -146,9 +146,10 @@ export const saveContactDetails = async (req, res, next) => {
       subject: "Hey !! yash, here's a new registration",
       body: {
         name: "I'm Excel Here's a new update for you",
+        link: "https://docs.google.com/spreadsheets/d/1bhfPogIEFQA94lUAwI-u9TUsTJ5xjvQ6pDFRGKJ3GD0/edit?pli=1&gid=0#gid=0",
         intro: `Here is the new query from user Mobile Number: ${savedContact.mobileNumber}`,
         outro: "Thank you , Yash",
-      },
+      }
     };
 
     sendEmail(emailData);

@@ -6,6 +6,7 @@ import { CONST_STRINGS, BASE_ROUTES } from "../helpers/constants.js";
 import adminRoutes from "./admin.js";
 import authRoutes from "./auth.js";
 import appRoutes from "./excel.js";
+import moduleRoutes from "./module.js";
 
 const router = express.Router();
 
@@ -47,5 +48,6 @@ router.get(BASE_ROUTES.PING_ROUTE, async (req, res) => {
 router.use(BASE_ROUTES.ADMIN_ROUTES, adminRoutes);
 router.use(BASE_ROUTES.AUTH_ROUTES, authRoutes);
 router.use(BASE_ROUTES.APP_APIS, appRoutes);
+router.use(BASE_ROUTES.MODULE_ROUTES, moduleRoutes);
 
 export default router;

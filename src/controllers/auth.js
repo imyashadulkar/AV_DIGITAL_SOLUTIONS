@@ -13,7 +13,7 @@ import {
 } from "../helpers/authHelper.js";
 import { CONST_STRINGS, TYPES } from "../helpers/constants.js";
 import { ENV_VAR } from "../helpers/env.js";
-import { User, AuthSubUser } from "../models/index.js";
+import { User, AuthSubUser, Organization } from "../models/index.js";
 import sendEmail from "../middleware/sendemail.js";
 
 // Create a middleware function that verifies the token and sends back the user information
@@ -57,46 +57,38 @@ export const getRegisterCode = async (req, res, next) => {
     const {
       email: _email,
       password,
-      confirmPassword,
       userName,
       phoneNumber,
       userRole,
     } = req.body;
 
-    // Check for missing required inputs
-    if (
-      !_email ||
-      !password ||
-      !confirmPassword ||
-      !userName ||
-      !phoneNumber ||
-      !userRole
-    ) {
+    console.log(req.body);
+
+    if (!_email || !password || !userName || !phoneNumber || !userRole) {
       throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS);
     }
 
     const email = validateEmail(_email);
 
-    // Check if user already exists
     const user = await User.findOne({ email });
     if (user) {
       throw new Error("User Already Found in Database");
     }
 
     // Validate password
-    validatePassword(password, confirmPassword);
+    // validatePassword(password, confirmPassword);
 
     // Generate next short code
     const users = await User.find();
     const shortCodes = users
-      .map((user) => Number(user?.shortCode?.split("ABSL")?.[1]))
+      .map((user) => Number(user?.shortCode?.split("CRM")?.[1]))
       .filter((value) => !isNaN(value));
     const nextShortCode =
       shortCodes.length > 0 ? Math.max(...shortCodes) + 1 : 1;
 
     // Generate userId and shortCode
     const userId = user ? user.userId : uuidv4();
-    const shortCode = `ABSL${nextShortCode}`;
+    const shortCode = `CRM${nextShortCode}`;
     const hashedPassword = await hashPassword(password);
 
     // Generate email verification code and send email
@@ -652,6 +644,7 @@ export const logoutUser = async (req, res, next) => {
   }
 };
 
+//Done
 export const subUserLoginWithEmailPassword = async (req, res, next) => {
   try {
     req.meta = { endpoint: "subUserLoginWithEmailPassword" };
@@ -692,7 +685,7 @@ export const subUserLoginWithEmailPassword = async (req, res, next) => {
       throw error;
     }
 
-    const role = CONST_STRINGS.AUTH_USER_ROLE;
+    const role = "subUser";
     const userId = authUser.userId;
     const token = generateJwtToken({
       userId,
@@ -701,6 +694,7 @@ export const subUserLoginWithEmailPassword = async (req, res, next) => {
       role,
       isAdmin: false,
       isAuthUser: false,
+      isOrganizationOwner: false,
     });
 
     res.cookie("jwt", token, getCookieOptions("login"));
@@ -710,8 +704,9 @@ export const subUserLoginWithEmailPassword = async (req, res, next) => {
       subUserId: subUser.subUserId,
       userId,
       email,
-      role: CONST_STRINGS.AUTH_USER_ROLE,
+      role,
       isAuthUser: false,
+      isOrganizationOwner: false,
     };
 
     req.data = {
@@ -727,6 +722,7 @@ export const subUserLoginWithEmailPassword = async (req, res, next) => {
   }
 };
 
+//Done
 export const createSubUser = async (req, res, next) => {
   try {
     req.meta = { endpoint: "createSubUser" };
@@ -734,32 +730,59 @@ export const createSubUser = async (req, res, next) => {
       userId,
       subUsername: _subUsername,
       password,
+      organizationId,
+      permissions,
       confirmPassword,
     } = req.body;
+
+    console.log(req.body);
+
     const subUsername = _subUsername.replace(/\s/g, "");
     const subUser = await AuthSubUser.findOne({ userId, subUsername });
+
     if (subUser) {
       throw new Error(CONST_STRINGS.SUB_USER_NAME_ALREADY_EXISTS);
     }
+
     validatePassword(password, confirmPassword);
+
     const subUserId = uuidv4();
     const hashedPassword = await hashPassword(password);
+
     const newSubUser = new AuthSubUser({
       userId,
       subUserId,
       subUsername,
+      organizationId,
       password: hashedPassword,
+      permissions: permissions,
+      userRole: "subUser",
     });
+
     await newSubUser.save();
+
+    const organization = await Organization.findOne({ organizationId });
+    if (!organization) {
+      throw new Error(CONST_STRINGS.ORGANIZATION_NOT_FOUND);
+    }
+
+    organization.subUsers.push(subUserId);
+    await organization.save();
+    console.log(organization);
     const responseMessage = CONST_STRINGS.SUB_USER_CREATED_SUCCESSFULLY;
     const responseData = {
-      subUserId,
+      userId,
+      organizationId,
+      permissions: permissions,
+      subUserRole: newSubUser.userRole,
     };
+
     req.data = {
       statuscode: 200,
       responseData: responseData || {},
       responseMessage: responseMessage || "",
     };
+
     next();
   } catch (err) {
     req.err = err;
@@ -767,24 +790,25 @@ export const createSubUser = async (req, res, next) => {
   }
 };
 
+//Done
 export const getSubUser = async (req, res, next) => {
   try {
     req.meta = { endpoint: "getSubUser" };
-    const { userId } = req.body;
+    const { organizationId } = req.body;
     const { subUserId } = req.params;
     let responseData;
     let responseMessage;
     if (subUserId) {
-      const subUser = await AuthSubUser.findOne({ userId, subUserId });
+      const subUser = await AuthSubUser.findOne({ organizationId, subUserId });
       responseData = {
         subUserId: subUser.subUserId,
         userName: subUser.subUsername,
         createdAt: subUser.createdAt,
         updatedAt: subUser.updatedAt,
       };
-      responseMessage = CONST_STRINGS.SUB_USER_RETRIEVED;
+      responseMessage = CONST_STRINGS.SUB_USERS_RETRIEVED;
     } else {
-      const subUsers = await AuthSubUser.find({ userId });
+      const subUsers = await AuthSubUser.find({ organizationId });
       responseData = subUsers.map((subUser) => ({
         subUserId: subUser.subUserId,
         userName: subUser.subUsername,
@@ -806,6 +830,7 @@ export const getSubUser = async (req, res, next) => {
   }
 };
 
+//Done
 export const changeSubUserPassword = async (req, res, next) => {
   try {
     req.meta = { endpoint: "changeSubUserPassword" };
@@ -820,6 +845,131 @@ export const changeSubUserPassword = async (req, res, next) => {
     await subUser.save();
     const responseMessage = CONST_STRINGS.PASSWORD_CHANGED_SUCCESSFULLY;
     const responseData = {};
+    req.data = {
+      statuscode: 200,
+      responseData: responseData || {},
+      responseMessage: responseMessage || "",
+    };
+    next();
+  } catch (err) {
+    req.err = err;
+    next(err);
+  }
+};
+
+//TODO
+export const getUserData = async (req, res, next) => {
+  try {
+    req.meta = { endpoint: "getUserData" };
+
+    const { email: _email, type, key } = req.params;
+    if (!_email || !key) {
+      throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS);
+    }
+
+    req.meta.email = _email;
+
+    const email = validateEmail(_email);
+
+    if (
+      key !== CONST_STRINGS.PASS_KEY ||
+      ![
+        CONST_STRINGS.TEST_USER_EMAIL,
+        CONST_STRINGS.TEST_SUB_USER_EMAIL,
+        CONST_STRINGS.TEST_ADMIN_EMAIL,
+      ].includes(email)
+    ) {
+      throw new Error(CONST_STRINGS.INVALD_PASS_KEY);
+    }
+
+    let collection;
+    if (type === "user") {
+      collection = User;
+    } else if (type === "sub-user") {
+      collection = AuthSubUser;
+    } else if (type === "admin") {
+      collection = AdminUser;
+    }
+    const user = await collection.findOne({ email });
+
+    if (!user) {
+      const error = new Error(CONST_STRINGS.USER_NOT_FOUND);
+      error.meta = { key };
+      throw error;
+    }
+
+    const responseMessage = CONST_STRINGS.USER_RETRIEVED_SUCCESSFULLY;
+    const responseData = {
+      user,
+    };
+    req.data = {
+      statuscode: 200,
+      responseData: responseData || {},
+      responseMessage: responseMessage || "",
+    };
+
+    next();
+  } catch (err) {
+    req.err = err;
+    next(err);
+  }
+};
+
+//Done
+export const updateSubUserPermission = async (req, res, next) => {
+  try {
+    req.meta = { endpoint: "updateSubUserPermission" };
+    const { permissions, userId, subUserId, userRole, isOrganizationOwner } =
+      req.body;
+
+    if (userRole !== "organizationOwner" && !isOrganizationOwner) {
+      throw new Error(CONST_STRINGS.UNAUTHORIZED_ACCESS);
+    }
+
+    if (!Array.isArray(permissions)) {
+      throw new Error(CONST_STRINGS.INVALID_PERMISSIONS);
+    }
+
+    const subUser = await AuthSubUser.findOne({ userId, subUserId });
+    console.log(subUser);
+    if (!subUser) {
+      throw new Error(CONST_STRINGS.SUB_USER_NOT_FOUND);
+    }
+
+    subUser.permissions.push(...permissions);
+
+    await subUser.save();
+    const responseMessage = CONST_STRINGS.PERMISSIONS_UPDATED_SUCCESSFULLY;
+    const responseData = {
+      permissions: subUser.permissions,
+    };
+    req.data = {
+      statuscode: 200,
+      responseData: responseData || {},
+      responseMessage: responseMessage || "",
+    };
+    next();
+  } catch (err) {
+    req.err = err;
+    next(err);
+  }
+};
+
+export const getSubUserPermission = async (req, res, next) => {
+  try {
+    req.meta = { endpoint: "getSubUserPermission" };
+    const { subUserId } = req.params;
+    const {userId } = req.body;
+    console.log(userId, subUserId);
+    const subUser = await AuthSubUser.findOne({ userId, subUserId});
+    console.log(subUser);
+    if (!subUser) {
+      throw new Error("Sub User not found");
+    }
+    const responseMessage = CONST_STRINGS.PERMISSIONS_RETRIEVED_SUCCESSFULLY;
+    const responseData = {
+      permissions: subUser.permissions,
+    };
     req.data = {
       statuscode: 200,
       responseData: responseData || {},

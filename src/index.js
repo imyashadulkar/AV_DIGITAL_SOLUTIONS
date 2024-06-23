@@ -1,6 +1,7 @@
 // Import dependencies
 import express from "express";
 import mongoose from "mongoose";
+import { MongoClient } from "mongodb";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import fileUpload from "express-fileupload";
@@ -35,7 +36,6 @@ app.use(
 // );
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
-
 
 // Enable CORS for allowed origins
 app.use(
@@ -90,19 +90,18 @@ if (!ENV_VAR.UNIT_TEST) {
 
   mongoose
     .connect(ENV_VAR.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
+      // useNewUrlParser: true,
+      // useUnifiedTopology: true,
     })
     .then(() => {
       console.log("Connected to database");
       app.listen(ENV_VAR.PORT, () => {
         console.log(
-          `Server started, API docs at ${serverUrl}/${BASE_URL}/${VERSION}/api-docs`
+          `Server started, API docs at ${serverUrl}/api-docs`
         );
       });
     })
     .catch((err) => console.error("Error connecting to MongoDB", err));
 }
-
 
 export default app;

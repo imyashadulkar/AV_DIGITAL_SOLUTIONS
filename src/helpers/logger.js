@@ -6,15 +6,12 @@ import winstonMongoDB from "winston-mongodb";
 import { ENV_VAR } from "./env.js";
 
 // Configure winston logger to log to MongoDB
-const logger = createLogger({
+const logger = winston.createLogger({
   transports: [
     new winstonMongoDB.MongoDB({
-      level: "info",
+      level: 'info',
       db: ENV_VAR.MONGODB_URI,
-      options: {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-      },
+      options: { useUnifiedTopology: true },
       collection: `${ENV_VAR.ENV}-application_logs`,
       format: winston.format.combine(
         // winston.format.timestamp(),

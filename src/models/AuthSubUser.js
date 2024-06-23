@@ -1,8 +1,14 @@
 import mongoose from "mongoose";
 
+const permissionEnum = ["Read", "Write", "Read&Write", "Owner", "ProjectLead"];
+
 const authSubUserSchema = new mongoose.Schema(
   {
     userId: {
+      type: String,
+      required: true
+    },
+    organizationId: {
       type: String,
       required: true
     },
@@ -18,6 +24,15 @@ const authSubUserSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true
+    },
+    userRole: {
+      type: String,
+      required: true
+    },
+    permissions: {
+      type: [String],
+      enum: permissionEnum,
+      default: "Read"
     }
   },
   { timestamps: true }

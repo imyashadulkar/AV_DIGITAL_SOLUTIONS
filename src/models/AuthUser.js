@@ -56,11 +56,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true
     },
-    userRole: {
-      type: String,
+     userRole: {
+     type: String,
       required: true
     },
-    
     isBlocked: {
       type: Boolean,
       required: true,
