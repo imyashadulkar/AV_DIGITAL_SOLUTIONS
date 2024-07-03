@@ -1,41 +1,35 @@
-// import mongoose from "mongoose";
-
-// const leadSchema = new mongoose.Schema({
-//   created_time: {
-//     type: Date,
-//     required: true,
-//   },
-//   ad_id: String,
-//   ad_name: String,
-//   adset_id: String,
-//   adset_name: String,
-//   campaign_id: String,
-//   campaign_name: String,
-//   form_id: String,
-//   form_name: String,
-//   is_organic: Boolean,
-//   platform: String,
-//   full_name: String,
-//   phone_number: String,
-//   lead_status: String,
-// });
-
-// export const Lead = mongoose.model("Lead", leadSchema);
-
 import mongoose from "mongoose";
 
 const leadSchema = new mongoose.Schema(
   {
-    campaign_name: String,
-    form_id: String,
-    form_name: String,
-    is_organic: Boolean,
-    platform: String,
-    full_name: String,
-    phone_number: String,
-    lead_status: String,
+    platform: { type: String, required: true },
+    phone_number: { type: String, required: true },
+    full_name: { type: String, required: true },
+    campaign_name: { type: String, required: true },
+    ad_name: { type: String, required: true },
+    timestamp: { type: Date, default: Date.now },
+    stage: {
+      type: String,
+      enum: ["qualified", "Not qualified"],
+      default: "Not qualified",
+    },
+    source: {
+      type: String,
+      enum: ["paid", "organic"],
+      default: "paid",
+    },
+    assigned_to: {
+      type: String,
+      enum: ["Unassigned", "Assigned"],
+      default: "Unassigned",
+    },
+    status: {
+      type: String,
+      enum: ["completed form", "incomplete form"],
+      default: "incomplete form",
+    },
   },
-  { strict: false } // Allow dynamic fields
+  { strict: true } // Only store specified fields
 );
 
 export const Lead = mongoose.model("Lead", leadSchema);

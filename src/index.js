@@ -1,11 +1,13 @@
 // Import dependencies
 import express from "express";
 import mongoose from "mongoose";
-import { MongoClient } from "mongodb";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import fileUpload from "express-fileupload";
 import swaggerUi from "swagger-ui-express";
+import http from "http";
+import {WebSocketServer} from "ws";
+import { setupWebSocket } from "../src/helpers/utils/webSocket.js";
 
 import { swaggerDocs } from "./helpers/utils/swagger.js";
 // Import local modules
@@ -18,6 +20,8 @@ const { BASE_URL, VERSION, PORT } = ENV_VAR;
 
 // Create a new Express app instance
 const app = express();
+const server = http.createServer(app);
+const wss = new WebSocketServer({ server });
 
 // Configure the app to use JSON and URL-encoded data
 app.use(express.json());
@@ -28,12 +32,6 @@ app.use(
     useTempFiles: true,
   })
 );
-
-// app.use(
-//   `/${BASE_URL}/${VERSION}/api-docs`,
-//   swaggerUi.serve,
-//   swaggerUi.setup(swaggerDocs /* { explorer: true } */)
-// );
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
@@ -60,18 +58,12 @@ app.use(`/${ENV_VAR.BASE_URL}/v1`, allRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  // Check if the error is related to clearing the cookie
-  // if (!err.skipCookieClearance) {
   if (err.clearCookies) {
-    // res.clearCookie("jwt", getCookieOptions("logout"))
     console.log("getCookieOptions");
   }
   logger.error(err.message, err?.meta);
   // Set Status code based error type
   res.status(400).json({ success: false, error: err.message });
-
-  // Pass the error to the next error handling middleware
-  // next(err);
 });
 
 // Handle 404 errors
@@ -96,12 +88,12 @@ if (!ENV_VAR.UNIT_TEST) {
     .then(() => {
       console.log("Connected to database");
       app.listen(ENV_VAR.PORT, () => {
-        console.log(
-          `Server started, API docs at ${serverUrl}/api-docs`
-        );
+        console.log(`Server started, API docs at ${serverUrl}/api-docs`);
       });
     })
     .catch((err) => console.error("Error connecting to MongoDB", err));
 }
+
+setupWebSocket(wss);
 
 export default app;

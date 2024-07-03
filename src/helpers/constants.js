@@ -50,9 +50,9 @@ export const CONST_STRINGS = {
   INVALID_ACTION_TYPE: "Invalid action type",
 
   //Sub User
-  SUB_USERS_RETRIEVED:"Sub users retrieved successfully",
-  SUB_USER_NOT_FOUND:"Sub user not found",
-  SUB_USER_LOGGED_IN_SUCCESSFULLY:"Sub user logged in successfully",
+  SUB_USERS_RETRIEVED: "Sub users retrieved successfully",
+  SUB_USER_NOT_FOUND: "Sub user not found",
+  SUB_USER_LOGGED_IN_SUCCESSFULLY: "Sub user logged in successfully",
   PERMISSIONS_UPDATED_SUCCESSFULLY: "Permissions updated successfully",
   PERMISSIONS_RETRIEVED_SUCCESSFULLY: "Permissions retrieved successfully",
   // License
@@ -70,6 +70,12 @@ export const CONST_STRINGS = {
   //access management
   UNAUTHORIZED_ACCESS: "Unauthorized access",
   INVALID_PERMISSIONS: "Invalid permissions",
+
+  //char
+  CHAT_NOT_FOUND: "Chat not found",
+  CHAT_DELETED_SUCCESS: "Chat deleted successfully",
+  GROUP_NOT_FOUND: "Group not found",
+  GROUP_DELETED_SUCCESS: "Group deleted successfully",
 };
 
 export const TYPES = {
@@ -88,6 +94,7 @@ export const BASE_ROUTES = {
   ADMIN_ROUTES: "/admin",
   LOG_ROUTES: "/logs",
   APP_APIS: "/crm",
+  CHAT_ROUTES: "/chat",
 };
 
 export const MODULE_ROUTES = {
@@ -148,4 +155,15 @@ export const LEADS_ROUTES = {
 export const GOOGLE_SHEETS_API = {
   SAVE_CONTACT_DETAILS: "/save-contact-details",
   SAVE_AGENT_DETAILS: "/save-agent-details",
+};
+
+export const CHAT_APP = {
+  CREATE_CHAT: "/create-chat",
+  GET_CHAT_BY_ID: "/get-chat-by-chat-id/:chatId",
+  DELETE_CHAT_BY_ID: "/delete-chat-by-chat-id/:chatId",
+  SEND_MESSAGE: "/send-message",
+  CREATE_GROUP: "/create-group",
+  ADD_MEMBER: "/groups/add-member",
+  REMOVE_MEMBER: "/groups/remove-member",
+  DELETE_GROUP: "/groups/delete-group/:userId",
 };

@@ -28,6 +28,7 @@
     "express-list-endpoints": "^6.0.0",
     "googleapi": "^1.0.2",
     "googleapis": "^140.0.0",
+    "http": "^0.0.1-security",
     "husky": "^8.0.3",
     "jsonwebtoken": "^9.0.0",
     "lint-staged": "^13.2.3",
@@ -46,6 +47,7 @@
     "uuid": "^9.0.0",
     "winston": "^3.13.0",
     "winston-mongodb": "^5.1.1",
+    "ws": "^8.17.1",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

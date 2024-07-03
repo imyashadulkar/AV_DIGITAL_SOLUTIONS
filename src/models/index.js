@@ -6,5 +6,17 @@ import { Organization } from "./organization.js";
 import { User } from "./AuthUser.js";
 import { Lead } from "./Lead.js";
 import { Contact } from "./postToSheet.js";
+import { Chat } from "./chat.js";
+import { Group } from "./group.js";
 
-export { AdminUser, User, License, Organization, AuthSubUser, Lead, Contact };
+export {
+  AdminUser,
+  User,
+  License,
+  Group,
+  Chat,
+  Organization,
+  AuthSubUser,
+  Lead,
+  Contact,
+};

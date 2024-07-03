@@ -7,6 +7,7 @@ import adminRoutes from "./admin.js";
 import authRoutes from "./auth.js";
 import appRoutes from "./excel.js";
 import moduleRoutes from "./module.js";
+import chatRoutes from "./chat.js";
 
 const router = express.Router();
 
@@ -49,5 +50,6 @@ router.use(BASE_ROUTES.ADMIN_ROUTES, adminRoutes);
 router.use(BASE_ROUTES.AUTH_ROUTES, authRoutes);
 router.use(BASE_ROUTES.APP_APIS, appRoutes);
 router.use(BASE_ROUTES.MODULE_ROUTES, moduleRoutes);
+router.use(BASE_ROUTES.CHAT_ROUTES, chatRoutes);
 
 export default router;

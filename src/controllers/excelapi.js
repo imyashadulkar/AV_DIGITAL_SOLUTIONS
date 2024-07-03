@@ -15,7 +15,7 @@ export const extractDataFromExcel = async (req, res, next) => {
     req.meta = { endpoint: "extractDataFromExcel" };
 
     if (!req.files.excelFile) {
-      throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS);
+      throw new Error("Missing required inputs");
     }
 
     const filePath = req.files.excelFile.tempFilePath;
@@ -30,31 +30,24 @@ export const extractDataFromExcel = async (req, res, next) => {
 
     // Prepare JSON data for database insertion
     const leadsToSave = jsonData.map((leadData) => {
-      const cleanLead = {};
-
-      // Process each field in the Excel data
-      Object.keys(leadData).forEach((key) => {
-        const cleanKey = stripPrefix(key); // Strip prefix from field name
-        const value = leadData[key];
-
-        // Strip prefix from value if it's a string
-        const cleanValue = stripValuePrefix(value);
-
-        // Convert to Date object if it's a date field
-        if (cleanKey === "date" || cleanKey === "created_time") {
-          cleanLead[cleanKey] = new Date(cleanValue);
-        } else {
-          cleanLead[cleanKey] = cleanValue;
-        }
-      });
-
-      return cleanLead;
+      return {
+        platform: leadData.platform,
+        phone_number: leadData.phone_number,
+        full_name: leadData.full_name,
+        campaign_name: leadData.campaign_name,
+        ad_name: leadData.ad_name,
+        timestamp: new Date(leadData.timestamp || Date.now()),
+        stage: leadData.stage || "Not qualified",
+        source: leadData.source || "paid",
+        assigned_to: leadData.assigned_to || "Unassigned",
+        status: leadData.status || "incomplete form",
+      };
     });
 
-    // Insert or update leads ensuring unique id
+    // Insert or update leads ensuring unique id (if you have an id field)
     const bulkOptions = leadsToSave.map((lead) => ({
       updateOne: {
-        filter: { id: lead.id },
+        filter: { phone_number: lead.phone_number }, // Use phone_number as the unique identifier
         update: {
           $set: lead, // Only update the fields specified in lead
         },
@@ -69,7 +62,7 @@ export const extractDataFromExcel = async (req, res, next) => {
     req.data = {
       statuscode: 200,
       responseData: result,
-      responseMessage: CONST_STRINGS.DATA_SAVE_SUCCESS,
+      responseMessage: "Data saved successfully",
     };
 
     next();
@@ -149,7 +142,7 @@ export const saveContactDetails = async (req, res, next) => {
         link: "https://docs.google.com/spreadsheets/d/1bhfPogIEFQA94lUAwI-u9TUsTJ5xjvQ6pDFRGKJ3GD0/edit?pli=1&gid=0#gid=0",
         intro: `Here is the new query from user Mobile Number: ${savedContact.mobileNumber}`,
         outro: "Thank you , Yash",
-      }
+      },
     };
 
     sendEmail(emailData);
@@ -218,7 +211,8 @@ export const saveAgentDetails = async (req, res, next) => {
       subject: "Thank you Agents for registering with us !!",
       body: {
         name: "AV Digital Solutions",
-        intro: "Greetings from AV Digital Solutions, Thank you for showing Interest in AV Digital Solutions.",
+        intro:
+          "Greetings from AV Digital Solutions, Thank you for showing Interest in AV Digital Solutions.",
         outro: "Thank you , Regards AV Digital Solutions",
       },
     };
