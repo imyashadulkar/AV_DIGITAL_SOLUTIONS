@@ -1,5 +1,4 @@
 import dotenv from "dotenv";
-import { version } from "mongoose";
 
 // import { post } from "./fetch_helper_node.js";
 dotenv.config({ path: ".env" });

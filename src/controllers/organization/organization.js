@@ -1,6 +1,7 @@
-import { validateUser } from "../helpers/authHelper.js";
-import { CONST_STRINGS, TYPES } from "../helpers/constants.js";
-import { License, Organization, User } from "../models/index.js";
+import { validateUser } from "../../helpers/authHelper.js";
+import { CONST_STRINGS, TYPES } from "../../helpers/constants.js";
+import { License, Organization, User } from "../../models/index.js";
+import { v4 as uuidv4 } from "uuid";
 
 //Done
 export const setOrganization = async (req, res, next) => {
@@ -42,7 +43,7 @@ export const setOrganization = async (req, res, next) => {
     } else {
       organization = new Organization({
         userId,
-        organizationId: userId.split("-")[4],
+        organizationId: uuidv4(),
         organizationName,
         departmentName,
         organizationContact,
@@ -115,6 +116,7 @@ export const getOrganization = async (req, res, next) => {
           country: "null",
           pincode: "null",
         },
+        projects: [],
       });
       organization = await newOrganization.save();
     }

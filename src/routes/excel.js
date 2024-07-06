@@ -2,6 +2,7 @@ import express from "express";
 import { upload } from "../middleware/multer.js";
 
 import {
+  assignLead,
   extractDataFromExcel,
   getAllLeads,
   getLeadById,
@@ -20,7 +21,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * crm/get-data-from-excel:
+ * /crm/get-data-from-excel:
  *   post:
  *     summary: Extract data from Excel file and save to database
  *     description: Extracts data from an uploaded Excel file, processes it, and saves it to the database.
@@ -106,11 +107,69 @@ router.post(
  * /crm/retrieve-all-leads:
  *   get:
  *     summary: Retrieve all leads
- *     description: Retrieve all leads from the database.
+ *     description: Retrieve all leads from the database with filtering, sorting, and pagination options.
  *     tags:
  *       - Leads
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date for filtering leads (inclusive).
+ *         example: "2024-01-01"
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date for filtering leads (inclusive).
+ *         example: "2024-12-31"
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *         description: Status of the lead.
+ *         example: "completed form"
+ *       - in: query
+ *         name: source
+ *         schema:
+ *           type: string
+ *         description: Source of the lead.
+ *         example: "paid"
+ *       - in: query
+ *         name: assigned_to
+ *         schema:
+ *           type: string
+ *         description: Assignment status of the lead.
+ *         example: "Unassigned"
+ *       - in: query
+ *         name: sortField
+ *         schema:
+ *           type: string
+ *         description: Field to sort leads by.
+ *         example: "timestamp"
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *         description: Sort order (ascending or descending).
+ *         example: "desc"
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *         description: Page number for pagination.
+ *         example: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Number of leads per page.
+ *         example: 10
  *     responses:
  *       200:
  *         description: Leads retrieved successfully
@@ -124,75 +183,74 @@ router.post(
  *                   description: Indicates if the request was successful.
  *                   example: true
  *                 data:
- *                   type: array
- *                   description: Array of lead objects.
- *                   items:
- *                     type: object
- *                     properties:
- *                       _id:
- *                         type: string
- *                         description: Unique identifier of the lead.
- *                         example: "609ba8d5e4b043004f23a6f1"
- *                       id:
- *                         type: string
- *                         description: ID of the lead.
- *                         example: "l:761998039379463"
- *                       ad_id:
- *                         type: string
- *                         description: ID of the ad related to the lead.
- *                         example: "ag:120208287823370438"
- *                       ad_name:
- *                         type: string
- *                         description: Name of the ad related to the lead.
- *                         example: "New Leads ad"
- *                       adset_id:
- *                         type: string
- *                         description: ID of the ad set related to the lead.
- *                         example: "as:120208287823350438"
- *                       adset_name:
- *                         type: string
- *                         description: Name of the ad set related to the lead.
- *                         example: "New Leads ad set – new video couples"
- *                       campaign_id:
- *                         type: string
- *                         description: ID of the campaign related to the lead.
- *                         example: "c:120208287823360438"
- *                       campaign_name:
- *                         type: string
- *                         description: Name of the campaign related to the lead.
- *                         example: "New Leads campaign – Couples"
- *                       created_time:
- *                         type: string
- *                         description: Timestamp when the lead was created.
- *                         example: "2024-05-22T09:41:27.000Z"
- *                       form_id:
- *                         type: string
- *                         description: ID of the form related to the lead.
- *                         example: "f:1809397289547883"
- *                       form_name:
- *                         type: string
- *                         description: Name of the form related to the lead.
- *                         example: "Untitled form 01/04/2024, 21:50"
- *                       full_name:
- *                         type: string
- *                         description: Full name of the lead.
- *                         example: "John Doe"
- *                       is_organic:
- *                         type: boolean
- *                         description: Indicates if the lead is organic.
- *                         example: false
- *                       lead_status:
- *                         type: string
- *                         description: Status of the lead.
- *                         example: "complete"
- *                       phone_number:
- *                         type: string
- *                         description: Phone number of the lead.
- *                         example: "+1234567890"
- *                       platform:
- *                         type: string
- *                         description: Platform where the lead originated.
- *                         example: "fb"
+ *                   type: object
+ *                   properties:
+ *                     leads:
+ *                       type: array
+ *                       description: Array of lead objects.
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           _id:
+ *                             type: string
+ *                             description: Unique identifier of the lead.
+ *                             example: "609ba8d5e4b043004f23a6f1"
+ *                           platform:
+ *                             type: string
+ *                             description: Platform where the lead originated.
+ *                             example: "fb"
+ *                           phone_number:
+ *                             type: string
+ *                             description: Phone number of the lead.
+ *                             example: "+1234567890"
+ *                           full_name:
+ *                             type: string
+ *                             description: Full name of the lead.
+ *                             example: "John Doe"
+ *                           campaign_name:
+ *                             type: string
+ *                             description: Name of the campaign related to the lead.
+ *                             example: "New Leads campaign – Couples"
+ *                           ad_name:
+ *                             type: string
+ *                             description: Name of the ad related to the lead.
+ *                             example: "New Leads ad"
+ *                           timestamp:
+ *                             type: string
+ *                             description: Timestamp when the lead was created.
+ *                             example: "2024-05-22T09:41:27.000Z"
+ *                           stage:
+ *                             type: string
+ *                             enum: ["qualified", "Not qualified"]
+ *                             description: Stage of the lead.
+ *                             example: "Not qualified"
+ *                           source:
+ *                             type: string
+ *                             enum: ["paid", "unpaid"]
+ *                             description: Source of the lead.
+ *                             example: "paid"
+ *                           assigned_to:
+ *                             type: string
+ *                             enum: ["Unassigned", "Assigned"]
+ *                             description: Assignment status of the lead.
+ *                             example: "Unassigned"
+ *                           status:
+ *                             type: string
+ *                             enum: ["completed form", "Incomplete form"]
+ *                             description: Status of the lead.
+ *                             example: "Incomplete form"
+ *                     totalLeads:
+ *                       type: integer
+ *                       description: Total number of leads matching the filter criteria.
+ *                       example: 100
+ *                     totalPages:
+ *                       type: integer
+ *                       description: Total number of pages.
+ *                       example: 10
+ *                     currentPage:
+ *                       type: integer
+ *                       description: Current page number.
+ *                       example: 1
  *       404:
  *         description: Leads not found
  *         content:
@@ -207,6 +265,7 @@ router.post(
  *                   type: string
  *                   example: "Leads not found"
  */
+
 router.get(
   LEADS_ROUTES.RETRIEVE_ALL_LEADS,
   verifyToken,
@@ -216,22 +275,25 @@ router.get(
 
 /**
  * @swagger
- * /crm/retrieve-lead-by-id:
+ * /crm/get-lead-by-leadId/{leadId}:
  *   get:
  *     summary: Get lead by ID
- *     description: Retrieve a lead from the database by its ID.
+ *     description: Retrieve detailed information about a lead by its ID.
  *     tags:
  *       - Leads
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
- *       - in: query
- *         name: id
- *         required: true
+ *       - in: path
+ *         name: leadId
  *         schema:
  *           type: string
+ *         required: true
  *         description: ID of the lead to retrieve.
+ *         example: "ebf0d1f2-3d77-42dd-a6c4-fa370e03df76"
  *     responses:
  *       200:
- *         description: Lead retrieved successfully
+ *         description: Lead details retrieved successfully
  *         content:
  *           application/json:
  *             schema:
@@ -242,71 +304,42 @@ router.get(
  *                   example: true
  *                 data:
  *                   type: object
+ *                   description: Lead object.
  *                   properties:
  *                     _id:
  *                       type: string
  *                       description: Unique identifier of the lead.
- *                       example: "609ba8d5e4b043004f23a6f1"
- *                     id:
- *                       type: string
- *                       description: ID of the lead.
- *                       example: "l:761998039379463"
- *                     ad_id:
- *                       type: string
- *                       description: ID of the ad related to the lead.
- *                       example: "ag:120208287823370438"
- *                     ad_name:
- *                       type: string
- *                       description: Name of the ad related to the lead.
- *                       example: "New Leads ad"
- *                     adset_id:
- *                       type: string
- *                       description: ID of the ad set related to the lead.
- *                       example: "as:120208287823350438"
- *                     adset_name:
- *                       type: string
- *                       description: Name of the ad set related to the lead.
- *                       example: "New Leads ad set – new video couples"
- *                     campaign_id:
- *                       type: string
- *                       description: ID of the campaign related to the lead.
- *                       example: "c:120208287823360438"
- *                     campaign_name:
- *                       type: string
- *                       description: Name of the campaign related to the lead.
- *                       example: "New Leads campaign – Couples"
- *                     created_time:
- *                       type: string
- *                       description: Timestamp when the lead was created.
- *                       example: "2024-05-22T09:41:27.000Z"
- *                     form_id:
- *                       type: string
- *                       description: ID of the form related to the lead.
- *                       example: "f:1809397289547883"
- *                     form_name:
- *                       type: string
- *                       description: Name of the form related to the lead.
- *                       example: "Untitled form 01/04/2024, 21:50"
- *                     full_name:
- *                       type: string
- *                       description: Full name of the lead.
- *                       example: "समीउल्लाह"
- *                     is_organic:
- *                       type: boolean
- *                       description: Indicates if the lead is organic.
- *                       example: false
- *                     lead_status:
- *                       type: string
- *                       description: Status of the lead.
- *                       example: "complete"
+ *                       example: "668647ead8f37a9c6caba9e1"
  *                     phone_number:
  *                       type: string
  *                       description: Phone number of the lead.
  *                       example: "p:+919353110500"
- *                     platform:
+ *                     ad_name:
  *                       type: string
- *                       description: Platform where the lead originated.
- *                       example: "fb"
+ *                       description: Name of the ad related to the lead.
+ *                       example: "New Leads ad"
+ *                     assigned_to:
+ *                       type: string
+ *                       description: Full name of the user to whom the lead is assigned.
+ *                       example: "John Doe"
+ *                     assignments:
+ *                       type: array
+ *                       description: Array of assignment objects.
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           assigned_by:
+ *                             type: string
+ *                             description: Full name of the user who assigned the lead.
+ *                             example: "Jane Smith"
+ *                           assigned_to:
+ *                             type: string
+ *                             description: Full name of the user to whom the lead is assigned.
+ *                             example: "John Doe"
+ *                           assigned_date:
+ *                             type: string
+ *                             description: Date of assignment.
+ *                             example: "2024-07-04T07:08:45.627Z"
  *       404:
  *         description: Lead not found
  *         content:
@@ -320,19 +353,6 @@ router.get(
  *                 error:
  *                   type: string
  *                   example: "Lead not found"
- *       500:
- *         description: Internal server error
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Internal server error"
  */
 
 router.get(
@@ -641,5 +661,149 @@ router.post(
   saveAgentDetails,
   successResponse
 );
+
+/**
+ * @swagger
+ * /crm/assign-lead:
+ *   post:
+ *     summary: Assign a lead to a user
+ *     description: Assign a lead to a user and store the details in the database.
+ *     tags:
+ *       - Leads
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: leadId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the lead to be assigned.
+ *         example: "1f2-3d77-42dd-a6c4-fa370e03df76"
+ *       - in: query
+ *         name: assignedTo
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the user to assign the lead to.
+ *         example: "252-bcb6-4a2e-8de7-b7aab9307156"
+ *       - in: query
+ *         name: remarks
+ *         schema:
+ *           type: string
+ *         description: Remarks about the assignment.
+ *         example: "High priority lead"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: string
+ *                 description: ID of the user who is assigning the lead (taken from verified token).
+ *                 example: "609ba8d5e4b043004f23a6f3"
+ *     responses:
+ *       200:
+ *         description: Lead assigned successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   description: Indicates if the request was successful.
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   description: Lead object.
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       description: Unique identifier of the lead.
+ *                       example: "609ba8d5e4b043004f23a6f1"
+ *                     platform:
+ *                       type: string
+ *                       description: Platform where the lead originated.
+ *                       example: "fb"
+ *                     phone_number:
+ *                       type: string
+ *                       description: Phone number of the lead.
+ *                       example: "+1234567890"
+ *                     full_name:
+ *                       type: string
+ *                       description: Full name of the lead.
+ *                       example: "John Doe"
+ *                     campaign_name:
+ *                       type: string
+ *                       description: Name of the campaign related to the lead.
+ *                       example: "New Leads campaign – Couples"
+ *                     ad_name:
+ *                       type: string
+ *                       description: Name of the ad related to the lead.
+ *                       example: "New Leads ad"
+ *                     timestamp:
+ *                       type: string
+ *                       description: Timestamp when the lead was created.
+ *                       example: "2024-05-22T09:41:27.000Z"
+ *                     stage:
+ *                       type: string
+ *                       enum: ["Qualified", "Not qualified", "Unread", "Intake", "Converted", "Lost"]
+ *                       description: Stage of the lead.
+ *                       example: "Not qualified"
+ *                     source:
+ *                       type: string
+ *                       enum: ["Paid", "Unpaid"]
+ *                       description: Source of the lead.
+ *                       example: "paid"
+ *                     assigned_to:
+ *                       type: string
+ *                       description: Current assignment status of the lead.
+ *                       example: "Assigned"
+ *                     status:
+ *                       type: string
+ *                       enum: ["completed form", "Incomplete form"]
+ *                       description: Status of the lead.
+ *                       example: "Incomplete form"
+ *                     remarks:
+ *                       type: string
+ *                       description: Remarks about the lead.
+ *                       example: "High priority lead"
+ *                     assignments:
+ *                       type: array
+ *                       description: Array of assignment objects.
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           assigned_by:
+ *                             type: string
+ *                             description: ID of the user who assigned the lead.
+ *                             example: "609ba8d5e4b043004f23a6f3"
+ *                           assigned_to:
+ *                             type: string
+ *                             description: ID of the user to whom the lead is assigned.
+ *                             example: "609ba8d5e4b043004f23a6f2"
+ *                           assigned_date:
+ *                             type: string
+ *                             description: Date of assignment.
+ *                             example: "2024-07-01T12:34:56.000Z"
+ *       404:
+ *         description: Lead or user not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Lead or user not found"
+ */
+
+router.post(LEADS_ROUTES.ASSIGN_LEAD, assignLead, successResponse);
 
 export default router;

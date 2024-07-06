@@ -1,17 +1,20 @@
 import express from "express";
 
-import { validateTokenResponse } from "../controllers/auth.js";
-import { AUTH_ROUTES, MODULE_ROUTES } from "../helpers/constants.js";
+import { MODULE_ROUTES } from "../helpers/constants.js";
 import { verifyToken } from "../middleware/auth.js";
 import { successResponse } from "../middleware/successResponse.js";
 import {
   getOrganization,
   setOrganization,
-} from "../controllers/organization.js";
+} from "../controllers/organization/organization.js";
+import {
+  addUserToProject,
+  changeProjectAndRole,
+  changeUserRoleInProject,
+  createProject,
+} from "../controllers/organization/project.js";
 
 const router = express.Router();
-
-// Unprotected Routes
 
 /**
  * @swagger
@@ -200,7 +203,7 @@ router.post(
  *           properties:
  *             userId:
  *               type: string
- *               example: "user123"
+ *               example: "ecd1f041-742e-446a-8617-55060cef2545"
  *               description: The ID of the user whose organization details are to be retrieved.
  *     responses:
  *       200:
@@ -350,6 +353,219 @@ router.get(
   MODULE_ROUTES.GET_ORGANIZATION,
   verifyToken,
   getOrganization,
+  successResponse
+);
+
+/**
+ * @swagger
+ * /module/create-project:
+ *   post:
+ *     summary: Create Project
+ *     description: Creates a new project within the organization.
+ *     tags: [Organization]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               organizationId:
+ *                 type: string
+ *               projectId:
+ *                 type: string
+ *               projectName:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Project created successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statuscode:
+ *                   type: integer
+ *                   example: 201
+ *                 responseData:
+ *                   $ref: '#/components/schemas/Organization'
+ *                 responseMessage:
+ *                   type: string
+ *                   example: "Project created successfully."
+ *       400:
+ *         description: Bad request, missing required inputs.
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
+router.post(
+  MODULE_ROUTES.CREATE_PROJECT,
+  verifyToken,
+  createProject,
+  successResponse
+);
+
+/**
+ * @swagger
+ * /module/add-user-to-project:
+ *   post:
+ *     summary: Add User to Project
+ *     description: Adds a user with a specified role to a project.
+ *     tags: [Organization]
+ *     parameters:
+ *       - in: query
+ *         name: organizationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the organization.
+ *       - in: query
+ *         name: projectId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the project.
+ *       - in: query
+ *         name: subuserId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the user to be added.
+ *       - in: query
+ *         name: userRole
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The role of the user in the project (e.g., admin, read, write).
+ *     responses:
+ *       200:
+ *         description: User added to project successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statuscode:
+ *                   type: integer
+ *                   example: 200
+ *                 responseData:
+ *                   $ref: '#/components/schemas/Organization'
+ *                 responseMessage:
+ *                   type: string
+ *                   example: "User added to project successfully."
+ *       400:
+ *         description: Bad request, missing required inputs.
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
+
+router.post(
+  MODULE_ROUTES.ADD_USER_TO_PROJECT,
+  verifyToken,
+  addUserToProject,
+  successResponse
+);
+
+/**
+ * @swagger
+ * /module/change-user-role-in-project:
+ *   put:
+ *     summary: Change User Role in Project
+ *     description: Changes the role of a user in a project.
+ *     tags: [Organization]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               organizationId:
+ *                 type: string
+ *               projectId:
+ *                 type: string
+ *               userId:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: User role changed successfully in project.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statuscode:
+ *                   type: integer
+ *                   example: 200
+ *                 responseData:
+ *                   $ref: '#/components/schemas/Organization'
+ *                 responseMessage:
+ *                   type: string
+ *                   example: "User role changed successfully in project."
+ *       400:
+ *         description: Bad request, missing required inputs.
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
+router.put(
+  MODULE_ROUTES.CHANGE_USER_ROLE_IN_PROJECT,
+  verifyToken,
+  changeUserRoleInProject,
+  successResponse
+);
+
+/**
+ * @swagger
+ * /module/change-project-and-role:
+ *   put:
+ *     summary: Change Project and User Role
+ *     description: Retrieves project details and user role within that project.
+ *     tags: [Organization]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               organizationId:
+ *                 type: string
+ *               projectId:
+ *                 type: string
+ *               userId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Project details and user role retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statuscode:
+ *                   type: integer
+ *                   example: 200
+ *                 responseData:
+ *                   type: object
+ *                   properties:
+ *                     currentProject:
+ *                       $ref: '#/components/schemas/Project'
+ *                     userRole:
+ *                       type: string
+ *                   description: Current project details and user role.
+ *                 responseMessage:
+ *                   type: string
+ *                   example: "Project details and user role retrieved successfully."
+ *       400:
+ *         description: Bad request, missing required inputs.
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
+router.put(
+  MODULE_ROUTES.CHANGE_PROJECT_AND_ROLE,
+  verifyToken,
+  changeProjectAndRole,
   successResponse
 );
 

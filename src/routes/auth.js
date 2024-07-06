@@ -18,7 +18,7 @@ import {
   updateSubUserPermission,
   updateUser,
   validateTokenResponse,
-} from "../controllers/auth.js";
+} from "../controllers/Authentication/auth.js";
 import { AUTH_ROUTES } from "../helpers/constants.js";
 import { verifyToken } from "../middleware/auth.js";
 import { successResponse } from "../middleware/successResponse.js";

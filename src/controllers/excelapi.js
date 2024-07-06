@@ -1,11 +1,10 @@
 import xlsx from "xlsx";
-import { Lead, Contact } from "../models/index.js";
+import { Lead, Contact, User } from "../models/index.js";
 import { CONST_STRINGS } from "../helpers/constants.js";
-import { stripPrefix, stripValuePrefix } from "../helpers/apiHelper.js";
 import { google } from "googleapis";
 import sendEmail from "../middleware/sendemail.js";
+import { v4 as uuidv4 } from "uuid";
 
-const sheets = google.sheets("v4");
 import { ENV_VAR } from "../helpers/env.js";
 
 // import { createBarChart } from "../helpers/chartHelper.js";
@@ -31,6 +30,7 @@ export const extractDataFromExcel = async (req, res, next) => {
     // Prepare JSON data for database insertion
     const leadsToSave = jsonData.map((leadData) => {
       return {
+        leadId: uuidv4(),
         platform: leadData.platform,
         phone_number: leadData.phone_number,
         full_name: leadData.full_name,
@@ -38,9 +38,10 @@ export const extractDataFromExcel = async (req, res, next) => {
         ad_name: leadData.ad_name,
         timestamp: new Date(leadData.timestamp || Date.now()),
         stage: leadData.stage || "Not qualified",
-        source: leadData.source || "paid",
+        source: leadData.source || "Unpaid",
         assigned_to: leadData.assigned_to || "Unassigned",
-        status: leadData.status || "incomplete form",
+        status: leadData.status || "Incomplete form",
+        remarks: leadData.remarks || "No Remarks",
       };
     });
 
@@ -77,11 +78,112 @@ export const getAllLeads = async (req, res, next) => {
   try {
     req.data = { endpoint: "getAllLeads" };
 
-    const leads = await Lead.find();
+    // Extract query parameters
+    const {
+      startDate,
+      endDate,
+      status,
+      source,
+      assigned_to,
+      sortField,
+      sortOrder,
+      page = 1,
+      limit = 10,
+    } = req.query;
+
+    // Build the filter object
+    const filter = {};
+
+    if (startDate || endDate) {
+      filter.timestamp = {};
+      if (startDate) filter.timestamp.$gte = new Date(startDate);
+      if (endDate) filter.timestamp.$lte = new Date(endDate);
+    }
+    if (status) filter.status = status;
+    if (source) filter.source = source;
+    if (assigned_to) filter.assigned_to = assigned_to;
+
+    // Build the sort object
+    const sort = {};
+    if (sortField && sortOrder) {
+      sort[sortField] = sortOrder === "desc" ? -1 : 1;
+    }
+
+    // Calculate pagination values
+    const skip = (page - 1) * limit;
+
+    // Fetch filtered, sorted, and paginated leads
+    const leads = await Lead.find(filter)
+      .sort(sort)
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    // Fetch total number of leads matching the filter
+    const totalLeads = await Lead.countDocuments(filter);
 
     req.data = {
       statuscode: 200,
-      responseData: { leads },
+      responseData: {
+        leads,
+        totalLeads,
+        totalPages: Math.ceil(totalLeads / limit),
+        currentPage: parseInt(page),
+      },
+      responseMessage: CONST_STRINGS.LEAD_RETRIEVED_SUCCESS,
+    };
+    next();
+  } catch (err) {
+    req.err = err;
+    next(err);
+  }
+};
+
+export const getLeadById = async (req, res, next) => {
+  try {
+    req.data = { endpoint: "getLeadById" };
+
+    const { leadId } = req.params;
+
+    if (!leadId) {
+      throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS);
+    }
+
+    // Fetch the lead
+    const lead = await Lead.findOne({ leadId });
+
+    if (!lead) {
+      throw new Error(CONST_STRINGS.LEAD_NOT_FOUND);
+    }
+
+    // Fetch user details for assigned_to and assignments.assigned_by
+    const assignedToUser = await User.findOne({ userId: lead.assigned_to });
+    if (!assignedToUser) {
+      throw new Error(CONST_STRINGS.USER_NOT_FOUND);
+    }
+
+    const assignments = await Promise.all(
+      lead.assignments.map(async (assignment) => {
+        const assignedByUser = await User.findOne({
+          userId: assignment.assigned_by,
+        });
+        return {
+          ...assignment.toObject(),
+          assigned_by: assignedByUser
+            ? assignedByUser.full_name
+            : assignment.assigned_by,
+        };
+      })
+    );
+
+    const leadWithAssignments = {
+      ...lead.toObject(),
+      assigned_to: assignedToUser.userName,
+      assignments,
+    };
+
+    req.data = {
+      statuscode: 200,
+      responseData: leadWithAssignments,
       responseMessage: CONST_STRINGS.LEAD_RETRIEVED_SUCCESS,
     };
     next();
@@ -235,25 +337,46 @@ export const saveAgentDetails = async (req, res, next) => {
   }
 };
 
-export const getLeadById = async (req, res, next) => {
+export const assignLead = async (req, res, next) => {
   try {
-    req.data = { endpoint: "getLeadById" };
+    req.meta = { endpoint: "assignLead" };
 
-    const { id } = req.query;
+    const { assignedTo, remarks, leadId } = req.query;
+    const { userId: assignedBy } = req.body;
 
-    const lead = await Lead.findOne({ id });
-
-    if (!lead) {
-      req.data.statuscode = 404;
-      req.data.responseMessage = CONST_STRINGS.LEAD_NOT_FOUND; // Adjust error message as per your constants
-      return next();
+    if (!leadId || !assignedTo || !assignedBy) {
+      throw new Error("Missing required inputs");
     }
 
-    req.data.statuscode = 200;
-    req.data.responseData = lead;
+    const lead = await Lead.findOne({ leadId: leadId });
+    if (!lead) {
+      throw new Error(CONST_STRINGS.LEAD_NOT_FOUND);
+    }
+
+    const assignedToUser = await User.findOne({ userId: assignedTo });
+    if (!assignedToUser) {
+      throw new Error(CONST_STRINGS.USER_NOT_FOUND);
+    }
+
+    const newAssignment = {
+      assigned_by: assignedBy,
+      assigned_to: assignedTo,
+      assigned_date: new Date(),
+    };
+
+    lead.assignments.push(newAssignment);
+    lead.assigned_to = assignedTo;
+    lead.remarks = remarks || lead.remarks;
+
+    await lead.save();
+
+    req.data = {
+      statuscode: 200,
+      responseData: lead,
+      responseMessage: CONST_STRINGS.LEAD_ASSIGNED_SUCCESS,
+    };
     next();
   } catch (err) {
-    console.error("Error in getLeadById:", err);
     req.err = err;
     next(err);
   }

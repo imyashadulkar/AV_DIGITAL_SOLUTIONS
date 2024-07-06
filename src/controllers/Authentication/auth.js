@@ -10,25 +10,27 @@ import {
   validatePassword,
   validateToken,
   validateUser,
-} from "../helpers/authHelper.js";
-import { CONST_STRINGS, TYPES } from "../helpers/constants.js";
-import { ENV_VAR } from "../helpers/env.js";
-import { User, AuthSubUser, Organization } from "../models/index.js";
-import sendEmail from "../middleware/sendemail.js";
+} from "../../helpers/authHelper.js";
+import { CONST_STRINGS, TYPES } from "../../helpers/constants.js";
+import { ENV_VAR } from "../../helpers/env.js";
+import { User, AuthSubUser, Organization } from "../../models/index.js";
+import sendEmail from "../../middleware/sendemail.js";
 
-// Create a middleware function that verifies the token and sends back the user information
+//Create a middleware function that verifies the token and sends back the user information
 export const validateTokenResponse = async (req, res, next) => {
   try {
     req.meta = { endpoint: "validateTokenResponse" };
     const token = req.cookies.jwt;
     const validToken = validateToken(token);
     if (validToken.success) {
-      const { userId, email, role, subUserId, isAuthUser } = validToken.data;
+      const { userId, email, role, subUserId, userRole, isAuthUser } =
+        validToken.data;
       const responseMessage = CONST_STRINGS.USER_IDENTITY_VERIFIED;
       const responseData = {
         userId,
         email,
         role,
+        userRole,
         subUserId,
         isAuthUser,
       };
@@ -292,7 +294,12 @@ export const loginWithEmailPassword = async (req, res, next) => {
       TYPES.EMAIL_VERIFIED
     );
 
-    const { userId, password: hashedPassword, emailVerification } = user;
+    const {
+      userId,
+      password: hashedPassword,
+      userRole,
+      emailVerification,
+    } = user;
     req.body = { ...req.body, userId };
 
     if (!emailVerification.verified) {
@@ -322,6 +329,7 @@ export const loginWithEmailPassword = async (req, res, next) => {
       userId,
       email,
       role,
+      userRole,
       isAdmin: false,
       isAuthUser: true,
     });
@@ -331,6 +339,7 @@ export const loginWithEmailPassword = async (req, res, next) => {
     const responseData = {
       userId,
       email,
+      userRole,
       role,
       isAuthUser: true,
     };
@@ -959,9 +968,9 @@ export const getSubUserPermission = async (req, res, next) => {
   try {
     req.meta = { endpoint: "getSubUserPermission" };
     const { subUserId } = req.params;
-    const {userId } = req.body;
+    const { userId } = req.body;
     console.log(userId, subUserId);
-    const subUser = await AuthSubUser.findOne({ userId, subUserId});
+    const subUser = await AuthSubUser.findOne({ userId, subUserId });
     console.log(subUser);
     if (!subUser) {
       throw new Error("Sub User not found");

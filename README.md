@@ -1,6 +1,5 @@
 ## Note 
-For ENV file contact me 9167310023
----
+For ENV file contact me at 9167310023
 
 # Authentication System Project
 
@@ -8,12 +7,9 @@ For ENV file contact me 9167310023
 
 ![alt text](image-1.png)
 
-
 The project is organized into various folders, each serving a specific function in the authentication system. The structure can be visualized in the provided image.
 
 ## Getting Started
-    // "start": "nodemon src/index.js",
-
 
 To run the project, execute the following command:
 
@@ -74,4 +70,3 @@ Admin routes allow for administrative actions:
 
 The project utilizes several middleware functions to handle various tasks within the authentication process.
 
----

@@ -6,11 +6,11 @@ import {
   getCookieOptions,
   validateEmail,
   validateUser,
-} from "../helpers/authHelper.js";
-import { CONST_STRINGS, TYPES } from "../helpers/constants.js";
-import sendEmail from "../middleware/sendemail.js";
+} from "../../helpers/authHelper.js";
+import { CONST_STRINGS, TYPES } from "../../helpers/constants.js";
+import sendEmail from "../../middleware/sendemail.js";
 
-import { AdminUser, User, License } from "../models/index.js";
+import { AdminUser, User, License } from "../../models/index.js";
 
 //Done
 export const getAdminLoginCode = async (req, res, next) => {
@@ -381,7 +381,7 @@ export const setLicenseDataById = async (req, res, next) => {
       license.approvedBy = approvedBy;
       license.approverRemarks = approverRemarks;
       license.orderId = orderId;
-      license.subUsers = subUsers;
+      license.subUsers = subUsers || [];
 
       await license.save();
     } else {

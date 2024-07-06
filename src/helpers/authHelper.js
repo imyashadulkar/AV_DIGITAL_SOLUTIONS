@@ -12,9 +12,10 @@ export const validateToken = (token) => {
     }
     try {
       const verified = jwt.verify(token, ENV_VAR.JWT_SECRET, {
-        algorithms: ["HS256"]
+        algorithms: ["HS256"],
       });
       if (verified) {
+        console.log(jwt.decode(token, ENV_VAR.JWT_SECRET));
         return { success: true, data: jwt.decode(token, ENV_VAR.JWT_SECRET) };
       } else {
         const error = new Error("Access Denied. Reason: JWT not valid");
@@ -128,7 +129,7 @@ export const comparePasswordWithHash = async (password, hashedPassword) => {
 export const generateJwtToken = (dataObject) => {
   const token = jwt.sign(
     {
-      ...dataObject
+      ...dataObject,
     },
     ENV_VAR.JWT_SECRET,
     { expiresIn: ENV_VAR.JWT_EXPIRATION_IN_MINS * 60 }
@@ -143,7 +144,7 @@ export const getCookieOptions = (type) => {
     secure: true,
     sameSite: "none",
     maxAge: type === "login" ? ENV_VAR.JWT_EXPIRATION_IN_MINS * 60 * 1000 : 0,
-    domain: ENV_VAR.ENV !== "local" ? ENV_VAR.COOKIE_DOMAIN : ""
+    domain: ENV_VAR.ENV !== "local" ? ENV_VAR.COOKIE_DOMAIN : "",
   };
   return cookieOptions;
 };

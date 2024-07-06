@@ -12,7 +12,7 @@ import {
   logoutAdmin,
   setLicenseDataById,
   updateUserStatus,
-} from "../controllers/admincontroller.js";
+} from "../controllers/admin/admincontroller.js";
 import { ADMIN_ROUTES } from "../helpers/constants.js";
 import { verifyAdmin, verifyToken } from "../middleware/auth.js";
 import { successResponse } from "../middleware/successResponse.js";
@@ -274,7 +274,7 @@ router.post(
  *               email:
  *                 type: string
  *                 description: The admin user's email address.
- *                 example: "admin@example.com"
+ *                 example: "admin@razzaq.com"
  *               password:
  *                 type: string
  *                 description: The admin user's password.
@@ -646,25 +646,12 @@ router.get(
 
 /**
  * @swagger
- * /admin/set-license-data/{endUserId}:
+ * /admin/set-license-data-by-id:
  *   post:
  *     summary: Set License Data by User ID
  *     description: Sets license data for a user identified by user ID.
  *     tags:
  *       - License Management
- *     parameters:
- *       - in: path
- *         name: endUserId
- *         required: true
- *         schema:
- *           type: string
- *         description: The ID of the end user to set license data for.
- *       - in: header
- *         name: Authorization
- *         required: true
- *         schema:
- *           type: string
- *         description: Bearer token for authentication. Include 'Bearer ' followed by the token.
  *     requestBody:
  *       required: true
  *       content:
@@ -672,13 +659,17 @@ router.get(
  *           schema:
  *             type: object
  *             properties:
+ *               endUserId:
+ *                 type: string
+ *                 example: "ecd1f041-742e-446a-8617-55060cef2545"
+ *                 description: userId of enduser.
  *               validity:
  *                 type: string
  *                 example: "2024-12-31"
  *                 description: The validity date of the license.
  *               approvedBy:
  *                 type: string
- *                 example: "John Doe"
+ *                 example: "Razzaq Shikalgar"
  *                 description: The name of the approver.
  *               approverRemarks:
  *                 type: string
@@ -692,7 +683,7 @@ router.get(
  *                 type: array
  *                 items:
  *                   type: string
- *                 example: ["subUser1", "subUser2"]
+ *                 example: "sub user count"
  *                 description: List of sub-users associated with the license.
  *     responses:
  *       200:
@@ -957,7 +948,7 @@ router.get(
 /**
  * @swagger
  * /admin/update-user-status:
- *   patch:
+ *   post:
  *     summary: Update User Status
  *     description: Updates various status types (active, block, timezone, shortCode) for a user.
  *     tags:

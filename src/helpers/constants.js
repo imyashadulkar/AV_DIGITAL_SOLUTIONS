@@ -66,6 +66,10 @@ export const CONST_STRINGS = {
   GET_ORGANIZATION_DETAILS_SUCCESS:
     "Organization details retrieved successfully",
   ORGANIZATION_NOT_FOUND: "Organization not found",
+  PROJECT_NOT_FOUND: "Project not found",
+  USER_NOT_FOUND_IN_PROJECT: "User not found in project",
+  DATA_SAVE_SUCCESS: "Data saved successfully",
+  DATA_FETCH_SUCCESS: "Data fetched successfully",
 
   //access management
   UNAUTHORIZED_ACCESS: "Unauthorized access",
@@ -76,6 +80,10 @@ export const CONST_STRINGS = {
   CHAT_DELETED_SUCCESS: "Chat deleted successfully",
   GROUP_NOT_FOUND: "Group not found",
   GROUP_DELETED_SUCCESS: "Group deleted successfully",
+
+  //Leads
+  LEAD_ASSIGNED_SUCCESS: "Lead assigned successfully",
+  LEAD_NOT_FOUND: "Lead not found",
 };
 
 export const TYPES = {
@@ -105,6 +113,12 @@ export const MODULE_ROUTES = {
   // add Organization
   SET_ORGANIZATION: "/set-organization",
   GET_ORGANIZATION: "/get-organization",
+  //project
+  CREATE_PROJECT: "/create-project",
+  GET_PROJECT: "/get-project",
+  ADD_USER_TO_PROJECT: "/add-user-to-project",
+  CHANGE_USER_ROLE_IN_PROJECT: "/change-user-role-in-project",
+  CHANGE_PROJECT_AND_ROLE: "/change-project-and-role",
 };
 
 export const ADMIN_ROUTES = {
@@ -147,9 +161,10 @@ export const EXCEL_ROUTES = {
   GET_DATA_FROM_EXCEL: "/get-data-from-excel",
 };
 export const LEADS_ROUTES = {
-  RETRIEVE_LEAD_BY_USING_ID: "/retrieve-lead-by-id",
+  RETRIEVE_LEAD_BY_USING_ID: "/get-lead-by-leadId/:leadId",
   RETRIEVE_ALL_LEADS: "/retrieve-all-leads",
   GET_CHARTS_FOR_LEADS: "/get-charts-for-leads",
+  ASSIGN_LEAD: "/assign-lead",
 };
 
 export const GOOGLE_SHEETS_API = {
