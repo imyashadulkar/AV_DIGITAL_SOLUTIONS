@@ -342,7 +342,7 @@ router.post(
 
 /**
  * @swagger
- * /auth/forgot-password-code:
+ * /auth/get-forgot-password-code:
  *   post:
  *     summary: Get Forgot Password Code
  *     description: Sends a verification code to reset the password.
