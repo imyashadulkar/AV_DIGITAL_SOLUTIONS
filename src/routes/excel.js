@@ -806,4 +806,122 @@ router.post(
 
 router.post(LEADS_ROUTES.ASSIGN_LEAD, assignLead, successResponse);
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Lead:
+ *       type: object
+ *       required:
+ *         - leadId
+ *         - platform
+ *         - phone_number
+ *         - full_name
+ *         - campaign_name
+ *         - ad_name
+ *         - stage
+ *         - source
+ *         - status
+ *       properties:
+ *         leadId:
+ *           type: string
+ *           description: Unique identifier of the lead.
+ *           example: "lead123"
+ *         platform:
+ *           type: string
+ *           description: Platform where the lead was generated.
+ *           example: "Facebook"
+ *         phone_number:
+ *           type: string
+ *           description: Phone number of the lead.
+ *           example: "+1234567890"
+ *         full_name:
+ *           type: string
+ *           description: Full name of the lead.
+ *           example: "John Doe"
+ *         campaign_name:
+ *           type: string
+ *           description: Name of the campaign associated with the lead.
+ *           example: "Summer Sale 2024"
+ *         ad_name:
+ *           type: string
+ *           description: Name of the ad that generated the lead.
+ *           example: "Special Offer Ad"
+ *         timestamp:
+ *           type: string
+ *           format: date-time
+ *           description: Timestamp when the lead was captured.
+ *           example: "2024-07-15T12:00:00.000Z"
+ *         stage:
+ *           type: string
+ *           enum:
+ *             - Qualified
+ *             - Not qualified
+ *             - Unread
+ *             - Intake
+ *             - Converted
+ *             - Lost
+ *           description: Current stage of the lead.
+ *           example: "Not qualified"
+ *         source:
+ *           type: string
+ *           enum:
+ *             - Paid
+ *             - Unpaid
+ *           description: Source of the lead.
+ *           example: "Paid"
+ *         assigned_to:
+ *           type: string
+ *           description: User to whom the lead is currently assigned.
+ *           example: "user123"
+ *         status:
+ *           type: string
+ *           enum:
+ *             - completed form
+ *             - Incomplete form
+ *           description: Status of the lead form.
+ *           example: "Incomplete form"
+ *         remarks:
+ *           type: string
+ *           description: Additional remarks or notes about the lead.
+ *           example: "Interested in upgraded plan."
+ *         assignments:
+ *           type: array
+ *           description: List of assignments for the lead.
+ *           items:
+ *             type: object
+ *             properties:
+ *               assigned_by:
+ *                 type: string
+ *                 description: User who assigned the lead.
+ *                 example: "manager123"
+ *               assigned_to:
+ *                 type: string
+ *                 description: User to whom the lead is assigned.
+ *                 example: "salesperson123"
+ *               assigned_date:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Date when the lead was assigned.
+ *                 example: "2024-07-15T12:00:00.000Z"
+ *       example:
+ *         leadId: "lead123"
+ *         platform: "Facebook"
+ *         phone_number: "+1234567890"
+ *         full_name: "John Doe"
+ *         campaign_name: "Summer Sale 2024"
+ *         ad_name: "Special Offer Ad"
+ *         timestamp: "2024-07-15T12:00:00.000Z"
+ *         stage: "Not qualified"
+ *         source: "Paid"
+ *         assigned_to: "Unassigned"
+ *         status: "Incomplete form"
+ *         remarks: "Interested in upgraded plan."
+ *         assignments:
+ *           - assigned_by: "manager123"
+ *             assigned_to: "salesperson123"
+ *             assigned_date: "2024-07-15T12:00:00.000Z"
+ */
+
+
 export default router;

@@ -1146,4 +1146,233 @@ router.post(
   successResponse
 );
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     AuthSubUser:
+ *       type: object
+ *       required:
+ *         - userId
+ *         - organizationId
+ *         - subUserId
+ *         - subUsername
+ *         - password
+ *         - userRole
+ *       properties:
+ *         userId:
+ *           type: string
+ *           description: Unique identifier of the parent user.
+ *           example: "user123"
+ *         organizationId:
+ *           type: string
+ *           description: Unique identifier of the organization.
+ *           example: "org456"
+ *         subUserId:
+ *           type: string
+ *           description: Unique identifier of the sub user.
+ *           example: "subuser789"
+ *         subUsername:
+ *           type: string
+ *           description: Username of the sub user.
+ *           example: "subuser"
+ *         password:
+ *           type: string
+ *           description: Password of the sub user.
+ *           example: "password123"
+ *         userRole:
+ *           type: string
+ *           description: Role of the sub user.
+ *           example: "ProjectLead"
+ *           enum:
+ *             - "Read"
+ *             - "Write"
+ *             - "Read&Write"
+ *             - "Owner"
+ *             - "ProjectLead"
+ *         permissions:
+ *           type: array
+ *           description: List of permissions granted to the sub user.
+ *           items:
+ *             type: string
+ *             enum:
+ *               - "Read"
+ *               - "Write"
+ *               - "Read&Write"
+ *               - "Owner"
+ *               - "ProjectLead"
+ *           example:
+ *             - "Read"
+ *           default:
+ *             - "Read"
+ *       example:
+ *         userId: "user123"
+ *         organizationId: "org456"
+ *         subUserId: "subuser789"
+ *         subUsername: "subuser"
+ *         password: "password123"
+ *         userRole: "ProjectLead"
+ *         permissions:
+ *           - "Read"
+ */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       required:
+ *         - userId
+ *         - userName
+ *         - shortCode
+ *         - email
+ *         - phoneNumber
+ *         - previousEmails
+ *         - password
+ *         - userRole
+ *         - isBlocked
+ *         - logins
+ *       properties:
+ *         userId:
+ *           type: string
+ *           description: Unique identifier of the user.
+ *           example: "user123"
+ *         userName:
+ *           type: string
+ *           description: Username of the user.
+ *           example: "username"
+ *         shortCode:
+ *           type: string
+ *           description: Short code identifier of the user.
+ *           example: "abc123"
+ *         email:
+ *           type: string
+ *           description: Email address of the user.
+ *           example: "user@example.com"
+ *         phoneNumber:
+ *           type: string
+ *           description: Phone number of the user.
+ *           example: "+1234567890"
+ *         previousEmails:
+ *           type: array
+ *           description: List of previous email addresses used by the user.
+ *           items:
+ *             type: string
+ *           example: ["old@example.com"]
+ *         password:
+ *           type: string
+ *           description: Password of the user.
+ *           example: "password123"
+ *         userRole:
+ *           type: string
+ *           description: Role of the user.
+ *           example: "Admin"
+ *         isBlocked:
+ *           type: boolean
+ *           description: Indicates if the user is blocked.
+ *           example: false
+ *         logins:
+ *           type: array
+ *           description: List of login timestamps.
+ *           items:
+ *             type: string
+ *           example: ["2024-01-01T12:00:00.000Z"]
+ *         emailVerification:
+ *           type: object
+ *           properties:
+ *             code:
+ *               type: string
+ *               description: Verification code for email verification.
+ *             createdAt:
+ *               type: string
+ *               format: date-time
+ *               description: Timestamp when verification code was created.
+ *             attempts:
+ *               type: number
+ *               description: Number of attempts made for email verification.
+ *             verified:
+ *               type: boolean
+ *               description: Indicates if email is verified.
+ *             verifiedAt:
+ *               type: string
+ *               format: date-time
+ *               description: Timestamp when email was verified.
+ *         forgotPassowrdVerification:
+ *           type: object
+ *           properties:
+ *             code:
+ *               type: string
+ *               description: Verification code for forgot password process.
+ *             createdAt:
+ *               type: string
+ *               format: date-time
+ *               description: Timestamp when verification code was created.
+ *             attempts:
+ *               type: number
+ *               description: Number of attempts made for forgot password.
+ *             verified:
+ *               type: boolean
+ *               description: Indicates if forgot password process is verified.
+ *             verifiedAt:
+ *               type: string
+ *               format: date-time
+ *               description: Timestamp when forgot password process was verified.
+ *         changeEmailVerification:
+ *           type: object
+ *           properties:
+ *             code:
+ *               type: string
+ *               description: Verification code for changing email address.
+ *             createdAt:
+ *               type: string
+ *               format: date-time
+ *               description: Timestamp when verification code was created.
+ *             attempts:
+ *               type: number
+ *               description: Number of attempts made for changing email address.
+ *             verified:
+ *               type: boolean
+ *               description: Indicates if changing email address is verified.
+ *             verifiedAt:
+ *               type: string
+ *               format: date-time
+ *               description: Timestamp when changing email address was verified.
+ *             currentEmailCode:
+ *               type: string
+ *               description: Current verification code for the current email.
+ *             newEmail:
+ *               type: string
+ *               description: New email address to be verified.
+ *       example:
+ *         userId: "user123"
+ *         userName: "username"
+ *         shortCode: "abc123"
+ *         email: "user@example.com"
+ *         phoneNumber: "+1234567890"
+ *         previousEmails: ["old@example.com"]
+ *         password: "password123"
+ *         userRole: "Admin"
+ *         isBlocked: false
+ *         logins: ["2024-01-01T12:00:00.000Z"]
+ *         emailVerification:
+ *           code: "verificationcode123"
+ *           createdAt: "2024-01-01T12:00:00.000Z"
+ *           attempts: 0
+ *           verified: false
+ *         forgotPassowrdVerification:
+ *           code: "forgotpasswordcode123"
+ *           createdAt: "2024-01-01T12:00:00.000Z"
+ *           attempts: 0
+ *           verified: false
+ *         changeEmailVerification:
+ *           code: "changeemailcode123"
+ *           createdAt: "2024-01-01T12:00:00.000Z"
+ *           attempts: 0
+ *           verified: false
+ *           currentEmailCode: "currentemailcode123"
+ *           newEmail: "newemail@example.com"
+ */
+
+
 export default router;

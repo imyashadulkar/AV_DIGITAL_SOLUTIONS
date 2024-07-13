@@ -32,7 +32,7 @@ export const validateToken = (token) => {
 
 export const validateEmail = (_email) => {
   const email = _email.toLowerCase();
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const emailRegex = /^[^\s@]+@(gmail|yahoo|company|razzaq)\.[^\s@]+$/;
   const validEmail = emailRegex.test(email);
   if (validEmail) {
     return email;

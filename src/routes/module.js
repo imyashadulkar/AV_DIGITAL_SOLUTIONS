@@ -569,4 +569,251 @@ router.put(
   successResponse
 );
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     License:
+ *       type: object
+ *       required:
+ *         - userId
+ *         - orderId
+ *         - currentValidity
+ *         - validityLastUpdatedAt
+ *         - approvedBy
+ *         - approverRemarks
+ *         - isActive
+ *       properties:
+ *         userId:
+ *           type: string
+ *           description: ID of the user associated with the license.
+ *           example: "user123"
+ *         orderId:
+ *           type: string
+ *           description: ID of the order related to the license.
+ *           example: "ORD123456"
+ *         currentValidity:
+ *           type: string
+ *           description: Current validity date of the license.
+ *           example: "2024-12-31"
+ *         validityLastUpdatedAt:
+ *           type: string
+ *           format: date-time
+ *           description: Timestamp when the validity was last updated.
+ *           example: "2024-07-15T12:00:00.000Z"
+ *         approvedBy:
+ *           type: string
+ *           description: Name of the approver who approved the license.
+ *           example: "John Doe"
+ *         subUsers:
+ *           type: array
+ *           description: List of sub-users associated with the license.
+ *           items:
+ *             type: string
+ *           example: ["subuser1", "subuser2"]
+ *         approverRemarks:
+ *           type: string
+ *           description: Remarks provided by the approver.
+ *           example: "Approved for next year renewal."
+ *         previousValidityMap:
+ *           type: object
+ *           additionalProperties:
+ *             $ref: '#/components/schemas/PreviousValidity'
+ *           description: Map containing previous validity information.
+ *         isActive:
+ *           type: boolean
+ *           description: Indicates if the license is active.
+ *           example: true
+ *       example:
+ *         userId: "user123"
+ *         orderId: "ORD123456"
+ *         currentValidity: "2024-12-31"
+ *         validityLastUpdatedAt: "2024-07-15T12:00:00.000Z"
+ *         approvedBy: "John Doe"
+ *         subUsers: ["subuser1", "subuser2"]
+ *         approverRemarks: "Approved for next year renewal."
+ *         previousValidityMap: {}
+ *         isActive: true
+ *
+ *     PreviousValidity:
+ *       type: object
+ *       properties:
+ *         orderId:
+ *           type: string
+ *           description: ID of the order related to the previous validity.
+ *           example: "ORD789012"
+ *         currentValidity:
+ *           type: string
+ *           description: Previous validity date.
+ *           example: "2023-12-31"
+ *         validityLastUpdatedAt:
+ *           type: string
+ *           format: date-time
+ *           description: Timestamp when the previous validity was last updated.
+ *           example: "2024-07-14T12:00:00.000Z"
+ *         approvedBy:
+ *           type: string
+ *           description: Name of the approver who approved the previous validity.
+ *           example: "Jane Smith"
+ *         approverRemarks:
+ *           type: string
+ *           description: Remarks provided by the approver for the previous validity.
+ *           example: "Approved for current year extension."
+ */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     UserRole:
+ *       type: object
+ *       properties:
+ *         subuserId:
+ *           type: string
+ *           description: ID of the subuser associated with the role.
+ *           example: "subuser123"
+ *         role:
+ *           type: string
+ *           enum: ["read", "write", "admin"]
+ *           description: Role assigned to the subuser within the organization.
+ *           example: "admin"
+ *
+ *     Project:
+ *       type: object
+ *       properties:
+ *         projectId:
+ *           type: string
+ *           description: ID of the project.
+ *           example: "project123"
+ *         projectName:
+ *           type: string
+ *           description: Name of the project.
+ *           example: "Project A"
+ *         subUsers:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/UserRole'
+ *           description: List of subusers and their roles within the project.
+ *           example:
+ *             - subuserId: "subuser123"
+ *               role: "admin"
+ *
+ *     OrganizationContact:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           description: Name of the organization contact.
+ *           example: "John Doe"
+ *         mobile:
+ *           type: string
+ *           description: Mobile number of the organization contact.
+ *           example: "+1234567890"
+ *         email:
+ *           type: string
+ *           description: Email address of the organization contact.
+ *           example: "john.doe@example.com"
+ *
+ *     OrganizationAddress:
+ *       type: object
+ *       properties:
+ *         addressLine1:
+ *           type: string
+ *           description: Address line 1 of the organization.
+ *           example: "123 Main St"
+ *         addressLine2:
+ *           type: string
+ *           description: Address line 2 of the organization.
+ *           example: "Apt 101"
+ *         city:
+ *           type: string
+ *           description: City of the organization's address.
+ *           example: "New York"
+ *         state:
+ *           type: string
+ *           description: State or province of the organization's address.
+ *           example: "NY"
+ *         country:
+ *           type: string
+ *           description: Country of the organization's address.
+ *           example: "USA"
+ *         pincode:
+ *           type: string
+ *           description: Postal code or ZIP code of the organization's address.
+ *           example: "10001"
+ *
+ *     Organization:
+ *       type: object
+ *       required:
+ *         - userId
+ *         - organizationId
+ *         - organizationName
+ *         - departmentName
+ *         - organizationContact
+ *         - organizationAddress
+ *         - projects
+ *       properties:
+ *         userId:
+ *           type: string
+ *           description: ID of the user associated with the organization.
+ *           example: "user123"
+ *         organizationId:
+ *           type: string
+ *           description: ID of the organization.
+ *           example: "org123"
+ *         subUsers:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: List of IDs of subusers associated with the organization.
+ *           example:
+ *             - "subuser123"
+ *         organizationName:
+ *           type: string
+ *           description: Name of the organization.
+ *           example: "XYZ Corp"
+ *         departmentName:
+ *           type: string
+ *           description: Name of the department within the organization.
+ *           example: "Marketing"
+ *         organizationContact:
+ *           $ref: '#/components/schemas/OrganizationContact'
+ *         organizationAddress:
+ *           $ref: '#/components/schemas/OrganizationAddress'
+ *         projects:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Project'
+ *           description: List of projects associated with the organization.
+ *           example:
+ *             - projectId: "project123"
+ *               projectName: "Project A"
+ *               subUsers:
+ *                 - subuserId: "subuser123"
+ *                   role: "admin"
+ *       example:
+ *         userId: "user123"
+ *         organizationId: "org123"
+ *         subUsers: ["subuser123"]
+ *         organizationName: "XYZ Corp"
+ *         departmentName: "Marketing"
+ *         organizationContact:
+ *           name: "John Doe"
+ *           mobile: "+1234567890"
+ *           email: "john.doe@example.com"
+ *         organizationAddress:
+ *           addressLine1: "123 Main St"
+ *           city: "New York"
+ *           state: "NY"
+ *           country: "USA"
+ *           pincode: "10001"
+ *         projects:
+ *           - projectId: "project123"
+ *             projectName: "Project A"
+ *             subUsers:
+ *               - subuserId: "subuser123"
+ *                 role: "admin"
+ */
+
+
 export default router;

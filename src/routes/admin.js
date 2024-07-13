@@ -1132,4 +1132,64 @@ router.post(
   successResponse
 );
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     AdminUser:
+ *       type: object
+ *       required:
+ *         - userId
+ *         - email
+ *         - password
+ *       properties:
+ *         userId:
+ *           type: string
+ *           description: Unique identifier for the admin user.
+ *           example: "ecd1f041-742e-446a-8617-55060cef2545"
+ *         email:
+ *           type: string
+ *           description: Email address of the admin user.
+ *           example: "admin@example.com"
+ *         password:
+ *           type: string
+ *           description: Password of the admin user.
+ *           example: "password123"
+ *         logins:
+ *           type: array
+ *           description: Array of login timestamps.
+ *           items:
+ *             type: string
+ *             format: date-time
+ *             example: "2024-07-15T08:00:00Z"
+ *         emailVerification:
+ *           type: object
+ *           description: Object containing email verification details.
+ *           properties:
+ *             code:
+ *               type: string
+ *               description: Verification code hashed value.
+ *               example: "$2a$10$YvC4L7i8jCGn5Soq0Wp0eeH5nZZq2bBtfd6ckFtW5rbd5ZAMOnWlW"
+ *             createdAt:
+ *               type: string
+ *               format: date-time
+ *               description: Date and time when the verification code was created.
+ *               example: "2024-07-15T08:00:00Z"
+ *             attempts:
+ *               type: integer
+ *               description: Number of verification attempts.
+ *               example: 0
+ *             verified:
+ *               type: boolean
+ *               description: Indicates if the email has been verified.
+ *               example: false
+ *             verifiedAt:
+ *               type: string
+ *               format: date-time
+ *               description: Date and time when the email was verified.
+ *               example: "2024-07-15T08:00:00Z"
+ */
+
+
+
 export default router;

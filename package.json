@@ -33,7 +33,7 @@
     "jsonwebtoken": "^9.0.0",
     "lint-staged": "^13.2.3",
     "mailgen": "^2.0.28",
-    "mongoose": "^8.4.3",
+    "mongoose": "^8.5.0",
     "multer": "1.4.5-lts.1",
     "mysql": "^2.18.1",
     "mysql2": "^3.10.0",

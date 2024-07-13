@@ -70,6 +70,9 @@ export const CONST_STRINGS = {
   USER_NOT_FOUND_IN_PROJECT: "User not found in project",
   DATA_SAVE_SUCCESS: "Data saved successfully",
   DATA_FETCH_SUCCESS: "Data fetched successfully",
+  NOT_ASSOCIATED_WITH_ORGANIZATION: "Not associated with organization",
+  NOT_ASSOCIATED_WITH_PROJECT: "Not associated with project",
+  NOT_LOGGING_IN_AS_MYSELF: "Not logging in as myself",
 
   //access management
   UNAUTHORIZED_ACCESS: "Unauthorized access",
