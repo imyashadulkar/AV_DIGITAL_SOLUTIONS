@@ -39,10 +39,12 @@ const router = express.Router();
 // Ping route to check the server status
 router.get(BASE_ROUTES.PING_ROUTE, async (req, res) => {
   console.log("not getting anything");
-  res.status(200).json({
-    success: true,
-    message: CONST_STRINGS.SERVER_RUNNING_MESSAGE,
-  });
+  const challenge = req.query['hub.challenge'];
+  res.status(200).send(challenge);
+  // res.status(200).json({
+  //   success: true,
+  //   message: CONST_STRINGS.SERVER_RUNNING_MESSAGE,
+  // });
 });
 
 // Mount the routes at respective BASE paths
