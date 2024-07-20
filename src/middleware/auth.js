@@ -1,7 +1,9 @@
 import { validateToken } from "../helpers/authHelper.js";
 
 export const verifyToken = async (req, res, next) => {
+  console.log("Verifying token", req.cookies);
   const token = req.cookies.jwt;
+  console.log({ token });
   const validToken = validateToken(token);
   if (validToken.success) {
     console.log({ validToken });

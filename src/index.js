@@ -15,8 +15,9 @@ import allRoutes from "./routes/index.js";
 import logger from "./helpers/logger.js";
 
 // Import Environment Variables
-import { ENV_VAR } from "./helpers/env.js";
-const { BASE_URL, VERSION, PORT } = ENV_VAR;
+import { ENV_VAR
+} from "./helpers/env.js";
+const { BASE_URL, VERSION, PORT, ALLOWED_ORIGINS } = ENV_VAR;
 
 // Create a new Express app instance
 const app = express();
@@ -38,21 +39,27 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 // Enable CORS for allowed origins
 app.use(
   cors({
-    // origin: (origin, callback) => {
-    //   // Allow requests with no origin (like mobile apps or curl requests)
-    //   if (!origin) return callback(null, true)
-    //   // Check if the origin is allowed
-    //   if (ENV_VAR.ALLOWED_ORIGINS.indexOf(origin) === -1) {
-    //     // If the origin is not allowed, set the Access-Control-Allow-Origin header to null
-    //     return callback(null, false)
-    //   }
-    //   // If the origin is allowed, set the Access-Control-Allow-Origin header to the origin and continue with the request
-    //   return callback(null, true)
-    // },
-    // credentials: true // Set to allow credentials in the request
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests for non prod)
+      if (!origin) {
+        if (ENV === 'PROD') {
+          // throw new Error("You are not authorized to access this resource.");
+          return callback(null, true);
+        } else {
+          return callback(null, true);
+        }
+      }
+      // Check if the origin is allowed
+      if (ALLOWED_ORIGINS.indexOf(origin) === -1) {
+        // If the origin is not allowed, set the Access-Control-Allow-Origin header to null
+        return callback(null, false);
+      }
+      // If the origin is allowed, set the Access-Control-Allow-Origin header to the origin and continue with the request
+      return callback(null, true);
+    },
+    credentials: true, // Set to allow credentials in the request
   })
 );
-
 // Set the Base Url for the app
 app.use(`/${ENV_VAR.BASE_URL}/v1`, allRoutes);
 
@@ -74,7 +81,7 @@ app.use((req, res) => {
 // Connecting to the MongoDB Database and then Starting server
 if (!ENV_VAR.UNIT_TEST) {
   let serverUrl = "";
-  if (ENV_VAR.ENV === "local") {
+  if (ENV_VAR.ENV === "LOCAL") {
     serverUrl = `http://localhost:${ENV_VAR.PORT}`;
   } else {
     serverUrl = `https://av-digital-solutions.onrender.com`;

@@ -5,6 +5,7 @@ dotenv.config({ path: ".env" });
 
 const baseEnv = {
   ENV: process.env.ENV,
+  ALLOWED_ORIGINS:process.env.ALLOWED_ORIGINS,
   PORT: process.env.PORT,
   BASE_URL: process.env.BASE_URL,
   UNIT_TEST: process.env.UNIT_TEST === "true",
