@@ -6,7 +6,7 @@ import cookieParser from "cookie-parser";
 import fileUpload from "express-fileupload";
 import swaggerUi from "swagger-ui-express";
 import http from "http";
-import {WebSocketServer} from "ws";
+import { WebSocketServer } from "ws";
 import { setupWebSocket } from "../src/helpers/utils/webSocket.js";
 
 import { swaggerDocs } from "./helpers/utils/swagger.js";
@@ -15,8 +15,7 @@ import allRoutes from "./routes/index.js";
 import logger from "./helpers/logger.js";
 
 // Import Environment Variables
-import { ENV_VAR
-} from "./helpers/env.js";
+import { ENV_VAR } from "./helpers/env.js";
 const { BASE_URL, VERSION, PORT, ALLOWED_ORIGINS } = ENV_VAR;
 
 // Create a new Express app instance
@@ -42,7 +41,7 @@ app.use(
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps or curl requests for non prod)
       if (!origin) {
-        if (ENV === 'PROD') {
+        if (ENV_VAR.ENV === "PROD") {
           // throw new Error("You are not authorized to access this resource.");
           return callback(null, true);
         } else {
@@ -81,7 +80,7 @@ app.use((req, res) => {
 // Connecting to the MongoDB Database and then Starting server
 if (!ENV_VAR.UNIT_TEST) {
   let serverUrl = "";
-  if (ENV_VAR.ENV === "LOCAL") {
+  if (ENV_VAR.ENV === "local") {
     serverUrl = `http://localhost:${ENV_VAR.PORT}`;
   } else {
     serverUrl = `https://av-digital-solutions.onrender.com`;

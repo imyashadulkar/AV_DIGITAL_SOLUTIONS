@@ -119,26 +119,22 @@ router.post(
  *           type: string
  *           format: date
  *         description: Start date for filtering leads (inclusive).
- *         example: "2024-01-01"
  *       - in: query
  *         name: endDate
  *         schema:
  *           type: string
  *           format: date
  *         description: End date for filtering leads (inclusive).
- *         example: "2024-12-31"
  *       - in: query
  *         name: status
  *         schema:
  *           type: string
  *         description: Status of the lead.
- *         example: "completed form"
  *       - in: query
  *         name: source
  *         schema:
  *           type: string
  *         description: Source of the lead.
- *         example: "paid"
  *       - in: query
  *         name: assigned_to
  *         schema:
@@ -806,6 +802,8 @@ router.post(
 
 router.post(LEADS_ROUTES.ASSIGN_LEAD, assignLead, successResponse);
 
+
+
 /**
  * @swagger
  * components:
@@ -922,6 +920,5 @@ router.post(LEADS_ROUTES.ASSIGN_LEAD, assignLead, successResponse);
  *             assigned_to: "salesperson123"
  *             assigned_date: "2024-07-15T12:00:00.000Z"
  */
-
 
 export default router;

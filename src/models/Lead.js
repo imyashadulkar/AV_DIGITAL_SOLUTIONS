@@ -36,6 +36,7 @@ const leadSchema = new mongoose.Schema(
       default: "paid",
     },
     assigned_to: { type: String, default: "Unassigned" }, // Current assignment status
+    isAssigned: { type: Boolean, default: false }, // Is the lead assigned to someone
     status: {
       type: String,
       enum: ["completed form", "Incomplete form"],

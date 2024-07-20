@@ -15,7 +15,7 @@ const swaggerOptions = {
       ${CONST_STRINGS.SERVER_RUNNING_MESSAGE}.`,
     },
     servers: [
-      ...(ENV === "LOCAL"
+      ...(ENV === "local"
         ? [
             {
               url: `http://localhost:80/${BASE_URL}/${VERSION}`,

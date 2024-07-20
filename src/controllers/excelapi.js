@@ -42,6 +42,7 @@ export const extractDataFromExcel = async (req, res, next) => {
         assigned_to: leadData.assigned_to || "Unassigned",
         status: leadData.status || "Incomplete form",
         remarks: leadData.remarks || "No Remarks",
+        isAssigned: leadData.isAssigned || false,
       };
     });
 
@@ -101,7 +102,11 @@ export const getAllLeads = async (req, res, next) => {
     }
     if (status) filter.status = status;
     if (source) filter.source = source;
-    if (assigned_to) filter.assigned_to = assigned_to;
+    if (assigned_to === "unassigned") {
+      filter.isAssigned = false;
+    } else {
+      filter.isAssigned = true;
+    }
 
     // Build the sort object
     const sort = {};
@@ -121,10 +126,24 @@ export const getAllLeads = async (req, res, next) => {
     // Fetch total number of leads matching the filter
     const totalLeads = await Lead.countDocuments(filter);
 
+    // Fetch user details for assigned_to
+    const leadsWithAssignedTo = await Promise.all(
+      leads.map(async (lead) => {
+        const assignedToUser = await User.findOne({ userId: lead.assigned_to });
+        const leadWithAssignedTo = {
+          ...lead.toObject(),
+          assigned_to_name: assignedToUser
+            ? assignedToUser.userName
+            : lead.assigned_to,
+        };
+        return leadWithAssignedTo;
+      })
+    );
+
     req.data = {
       statuscode: 200,
       responseData: {
-        leads,
+        leads: leadsWithAssignedTo,
         totalLeads,
         totalPages: Math.ceil(totalLeads / limit),
         currentPage: parseInt(page),
@@ -366,6 +385,7 @@ export const assignLead = async (req, res, next) => {
 
     lead.assignments.push(newAssignment);
     lead.assigned_to = assignedTo;
+    lead.isAssigned = true;
     lead.remarks = remarks || lead.remarks;
 
     await lead.save();

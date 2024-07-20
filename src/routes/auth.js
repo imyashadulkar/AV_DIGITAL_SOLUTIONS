@@ -9,6 +9,7 @@ import {
   getForgotPasswordCode,
   getRegisterCode,
   getSubUser,
+  getSubUserById,
   getSubUserPermission,
   loginWithEmailPassword,
   logoutUser,
@@ -715,7 +716,20 @@ router.delete(
  *           schema:
  *             type: object
  *             properties:
- *               // Define your request body properties here
+ *               userId:
+ *                 type: string
+ *                 description: The ID of the authenticated user.
+ *               emailId:
+ *                 type: string
+ *                 description: The username for the sub-user.
+ *               organizationId:
+ *                 type: string
+ *                 description: The ID of the organization to which the sub-user belongs.
+ *               permissions:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: An array of permissions assigned to the sub-user.
  *     responses:
  *       200:
  *         description: Sub-user created successfully
@@ -724,7 +738,18 @@ router.delete(
  *             schema:
  *               type: object
  *               properties:
- *                 // Define your response schema here
+ *                 userId:
+ *                   type: string
+ *                 organizationId:
+ *                   type: string
+ *                 permissions:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                 subUserRole:
+ *                   type: string
+ *                 generatedPassword:
+ *                   type: string
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  *       500:
@@ -740,74 +765,57 @@ router.post(
 
 /**
  * @swagger
- * /auth/{subUserId}:
+ * /auth/get-sub-user-by-id/{subUserId}:
  *   get:
- *     summary: Get Sub User
- *     description: Retrieves information about a sub-user.
+ *     summary: Get Sub User by ID
+ *     description: Retrieves details of a sub-user by their sub-user ID.
  *     tags:
  *       - Sub User
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: subUserId
- *         required: true
  *         schema:
  *           type: string
- *         description: The ID of the sub-user to retrieve information about.
+ *         required: true
+ *         description: The ID of the sub-user to retrieve.
  *     responses:
  *       200:
- *         description: Sub user information retrieved successfully
+ *         description: Sub-user details retrieved successfully
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 statuscode:
- *                   type: integer
- *                   example: 200
- *                   description: HTTP status code of the response.
- *                 responseData:
- *                   type: object
- *                   properties:
- *                     subUserId:
- *                       type: string
- *                       example: "subuser123"
- *                       description: The ID of the sub-user.
- *                     userName:
- *                       type: string
- *                       example: "subuser"
- *                       description: The username of the sub-user.
- *                     createdAt:
- *                       type: string
- *                       format: date-time
- *                       example: "2024-06-25T08:30:00.000Z"
- *                       description: The date and time when the sub-user was created.
- *                     updatedAt:
- *                       type: string
- *                       format: date-time
- *                       example: "2024-06-25T08:30:00.000Z"
- *                       description: The date and time when the sub-user was last updated.
- *                 responseMessage:
+ *                 userId:
  *                   type: string
- *                   example: "Sub user information retrieved successfully."
- *                   description: A message indicating the outcome of the operation.
+ *                 subUserId:
+ *                   type: string
+ *                 subUsername:
+ *                   type: string
+ *                 organizationId:
+ *                   type: string
+ *                 permissions:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                 userRole:
+ *                   type: string
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
  *       404:
- *         description: Sub user not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 error:
- *                   type: string
- *                   example: "Sub user not found."
+ *         description: Sub-user not found
  *       500:
  *         $ref: '#/components/responses/InternalServerError'
  */
 
-router.get(AUTH_ROUTES.GET_SUB_USER, verifyToken, getSubUser, successResponse);
+router.get(
+  AUTH_ROUTES.GET_SUB_USER_BY_ID,
+  verifyToken,
+  getSubUserById,
+  successResponse
+);
 
 /**
  * @swagger
@@ -976,19 +984,12 @@ router.get(
 
 /**
  * @swagger
- * /auth/change-sub-user-password/{subUserId}:
- *   put:
+ * /auth/change-sub-user-password:
+ *   post:
  *     summary: Change Sub User Password
  *     description: Changes the password of a sub-user.
  *     tags:
  *       - Sub User
- *     parameters:
- *       - in: path
- *         name: subUserId
- *         required: true
- *         schema:
- *           type: string
- *         description: The ID of the sub-user to change the password for.
  *     requestBody:
  *       required: true
  *       content:
@@ -996,10 +997,10 @@ router.get(
  *           schema:
  *             type: object
  *             properties:
- *               userId:
+ *               subUserId:
  *                 type: string
- *                 example: "user123"
- *                 description: The ID of the main user.
+ *                 example: "subUser456"
+ *                 description: The ID of the sub-user whose password is to be changed.
  *               newPassword:
  *                 type: string
  *                 example: "newpassword123"
@@ -1373,6 +1374,5 @@ router.post(
  *           currentEmailCode: "currentemailcode123"
  *           newEmail: "newemail@example.com"
  */
-
 
 export default router;

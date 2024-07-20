@@ -12,6 +12,7 @@ import {
   changeProjectAndRole,
   changeUserRoleInProject,
   createProject,
+  getAllUserInProject,
 } from "../controllers/organization/project.js";
 
 const router = express.Router();
@@ -571,6 +572,57 @@ router.put(
 
 /**
  * @swagger
+ * /module/get-all-user-in-project:
+ *   get:
+ *     summary: Get All Users in Project
+ *     description: Retrieves all users in a project.
+ *     tags: [Organization]
+ *     parameters:
+ *       - in: query
+ *         name: organizationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the organization.
+ *       - in: query
+ *         name: projectId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the project.
+ *     responses:
+ *       200:
+ *         description: Users in project retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statuscode:
+ *                   type: integer
+ *                   example: 200
+ *                 responseData:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/User'
+ *                   description: List of users in the project.
+ *                 responseMessage:
+ *                   type: string
+ *                   example: "Users in project retrieved successfully."
+ *       400:
+ *         description: Bad request, missing required inputs.
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
+router.get(
+  MODULE_ROUTES.GET_ALL_USER_IN_PROJECT,
+  verifyToken,
+  getAllUserInProject,
+  successResponse
+);
+
+/**
+ * @swagger
  * components:
  *   schemas:
  *     License:
@@ -814,6 +866,5 @@ router.put(
  *               - subuserId: "subuser123"
  *                 role: "admin"
  */
-
 
 export default router;

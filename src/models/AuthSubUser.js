@@ -6,34 +6,38 @@ const authSubUserSchema = new mongoose.Schema(
   {
     userId: {
       type: String,
-      required: true
+      required: true,
     },
     organizationId: {
       type: String,
-      required: true
+      required: true,
     },
     subUserId: {
       type: String,
       required: true,
-      unique: true
+      unique: true,
     },
     subUsername: {
       type: String,
-      required: true
+      required: true,
+    },
+    emailId: {
+      type: String,
+      required: true,
     },
     password: {
       type: String,
-      required: true
+      required: true,
     },
     userRole: {
       type: String,
-      required: true
+      required: true,
     },
     permissions: {
       type: [String],
       enum: permissionEnum,
-      default: "Read"
-    }
+      default: "Read",
+    },
   },
   { timestamps: true }
 );

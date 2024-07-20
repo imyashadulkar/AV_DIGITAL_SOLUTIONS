@@ -144,7 +144,7 @@ export const getCookieOptions = (type) => {
     secure: true,
     sameSite: "none",
     maxAge: type === "login" ? ENV_VAR.JWT_EXPIRATION_IN_MINS * 60 * 1000 : 0,
-    domain: ENV_VAR.ENV !== "LOCAL" ? ENV_VAR.COOKIE_DOMAIN : "",
+    domain: ENV_VAR.ENV !== "local" ? ENV_VAR.COOKIE_DOMAIN : "",
   };
   return cookieOptions;
 };

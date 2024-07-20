@@ -13,6 +13,10 @@ export const createProject = async (req, res, next) => {
       throw new Error(CONST_STRINGS.ORGANIZATION_NOT_FOUND);
     }
 
+    if (!user.license.isActive) {
+      throw new Error(CONST_STRINGS.LICENSE_NOT_ACTIVE);
+    }
+
     const projectId = uuidv4();
 
     const newProject = {
@@ -44,7 +48,9 @@ export const addUserToProject = async (req, res, next) => {
 
     const { organizationId, projectId, subuserId, userRole: role } = req.query;
 
-    const organization = await Organization.findOne({ organizationId: organizationId });
+    const organization = await Organization.findOne({
+      organizationId: organizationId,
+    });
     if (!organization) {
       throw new Error(CONST_STRINGS.ORGANIZATION_NOT_FOUND);
     }
@@ -142,6 +148,40 @@ export const changeProjectAndRole = async (req, res, next) => {
     next();
   } catch (err) {
     console.error("Error in changeProjectAndRole:", err);
+    req.err = err;
+    next(err);
+  }
+};
+
+export const getAllUserInProject = async (req, res, next) => {
+  try {
+    req.data = { endpoint: "getAllUserInProject" };
+
+    const { organizationId, projectId } = req.query;
+
+    const organization = await Organization.findOne({ organizationId });
+    if (!organization) {
+      throw new Error(CONST_STRINGS.ORGANIZATION_NOT_FOUND);
+    }
+
+    const project = organization.projects.find(
+      (project) => project.projectId === projectId
+    );
+    if (!project) {
+      throw new Error(CONST_STRINGS.PROJECT_NOT_FOUND);
+    }
+
+    const users = project.subUsers;
+
+    req.data = {
+      statuscode: 200,
+      responseData: users,
+      responseMessage: CONST_STRINGS.DATA_FETCH_SUCCESS,
+    };
+
+    next();
+  } catch (err) {
+    console.error("Error in getAllUserInProject:", err);
     req.err = err;
     next(err);
   }

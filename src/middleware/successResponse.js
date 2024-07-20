@@ -4,7 +4,7 @@ export const successResponse = async (req, res, next) => {
       statuscode: req.data.statuscode,
       success: true,
       message: req.data.responseMessage,
-      data: req.data.responseData
+      data: req.data.responseData,
     });
   } catch (err) {
     next(err);

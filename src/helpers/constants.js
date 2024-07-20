@@ -73,6 +73,7 @@ export const CONST_STRINGS = {
   NOT_ASSOCIATED_WITH_ORGANIZATION: "Not associated with organization",
   NOT_ASSOCIATED_WITH_PROJECT: "Not associated with project",
   NOT_LOGGING_IN_AS_MYSELF: "Not logging in as myself",
+  LICENSE_NOT_ACTIVE: "License not active",
 
   //access management
   UNAUTHORIZED_ACCESS: "Unauthorized access",
@@ -122,6 +123,7 @@ export const MODULE_ROUTES = {
   ADD_USER_TO_PROJECT: "/add-user-to-project",
   CHANGE_USER_ROLE_IN_PROJECT: "/change-user-role-in-project",
   CHANGE_PROJECT_AND_ROLE: "/change-project-and-role",
+  GET_ALL_USER_IN_PROJECT: "/get-all-user-in-project",
 };
 
 export const ADMIN_ROUTES = {
@@ -154,6 +156,7 @@ export const AUTH_ROUTES = {
   GET_USER_DATA: "/get-user-data/:type/:email/:key",
   AUTH_SUB_USER_GENERATION: "/create-sub-user",
   GET_SUB_USER: "/get-sub-user/:subUserId?",
+  GET_SUB_USER_BY_ID: "/get-sub-user-by-id/:subUserId",
   GET_SUB_USER_PERMISSION: "/get-sub-user-permission/:subUserId?",
   UPDATE_USER_PERMISSION: "/update-sub-user-permission",
   CHANGE_SUB_USER_PASSWORD: "/change-sub-user-password",
