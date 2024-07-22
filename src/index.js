@@ -49,7 +49,7 @@ app.use(
         }
       }
       // Check if the origin is allowed
-      if (ALLOWED_ORIGINS.indexOf(origin) === -1) {
+      if (ALLOWED_ORIGINS.includes(origin) === -1) {
         // If the origin is not allowed, set the Access-Control-Allow-Origin header to null
         return callback(null, false);
       }

@@ -334,6 +334,8 @@ export const loginWithEmailPassword = async (req, res, next) => {
       isAuthUser: true,
     });
 
+    console.log(token);
+
     res.cookie("jwt", token, getCookieOptions("login"));
     const responseMessage = CONST_STRINGS.USER_LOGGED_IN_SUCCESSFULLY;
     const responseData = {
@@ -341,6 +343,7 @@ export const loginWithEmailPassword = async (req, res, next) => {
       email,
       userRole,
       role,
+      token,
       isAuthUser: true,
     };
     req.data = {
