@@ -88,8 +88,8 @@ export const getAllLeads = async (req, res, next) => {
       assigned_to,
       sortField,
       sortOrder,
-      page = 1,
-      limit = 10,
+      page,
+      limit,
     } = req.query;
 
     // Build the filter object
@@ -102,11 +102,11 @@ export const getAllLeads = async (req, res, next) => {
     }
     if (status) filter.status = status;
     if (source) filter.source = source;
-    if (assigned_to === "unassigned") {
-      filter.isAssigned = false;
-    } else {
-      filter.isAssigned = true;
-    }
+    // if (assigned_to === "unassigned") {
+    //   filter.isAssigned = false;
+    // } else {
+    //   filter.isAssigned = true;
+    // }
 
     // Build the sort object
     const sort = {};
@@ -126,24 +126,24 @@ export const getAllLeads = async (req, res, next) => {
     // Fetch total number of leads matching the filter
     const totalLeads = await Lead.countDocuments(filter);
 
-    // Fetch user details for assigned_to
-    const leadsWithAssignedTo = await Promise.all(
-      leads.map(async (lead) => {
-        const assignedToUser = await User.findOne({ userId: lead.assigned_to });
-        const leadWithAssignedTo = {
-          ...lead.toObject(),
-          assigned_to_name: assignedToUser
-            ? assignedToUser.userName
-            : lead.assigned_to,
-        };
-        return leadWithAssignedTo;
-      })
-    );
+    // // Fetch user details for assigned_to
+    // const leadsWithAssignedTo = await Promise.all(
+    //   leads.map(async (lead) => {
+    //     const assignedToUser = await User.findOne({ userId: lead.assigned_to });
+    //     const leadWithAssignedTo = {
+    //       ...lead.toObject(),
+    //       assigned_to_name: assignedToUser
+    //         ? assignedToUser.userName
+    //         : lead.assigned_to,
+    //     };
+    //     return leadWithAssignedTo;
+    //   })
+    // );
 
     req.data = {
       statuscode: 200,
       responseData: {
-        leads: leadsWithAssignedTo,
+        leads: leads,
         totalLeads,
         totalPages: Math.ceil(totalLeads / limit),
         currentPage: parseInt(page),
