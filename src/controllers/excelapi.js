@@ -43,6 +43,11 @@ export const extractDataFromExcel = async (req, res, next) => {
         status: leadData.status || "Incomplete form",
         remarks: leadData.remarks || "No Remarks",
         isAssigned: leadData.isAssigned || false,
+        followUp: {
+          lastCallDate: null, // or use new Date() if you prefer
+          lastCallStatus: "Pending",
+          nextCallScheduled: null, // or use new Date() if you prefer
+        },
       };
     });
 
@@ -102,11 +107,13 @@ export const getAllLeads = async (req, res, next) => {
     }
     if (status) filter.status = status;
     if (source) filter.source = source;
-    // if (assigned_to === "unassigned") {
-    //   filter.isAssigned = false;
-    // } else {
-    //   filter.isAssigned = true;
-    // }
+
+    // Set filter for isAssigned based on the assigned_to parameter
+    if (assigned_to === "assigned") {
+      filter.isAssigned = true;
+    } else if (assigned_to === "unassigned") {
+      filter.isAssigned = false;
+    }
 
     // Build the sort object
     const sort = {};
@@ -126,24 +133,49 @@ export const getAllLeads = async (req, res, next) => {
     // Fetch total number of leads matching the filter
     const totalLeads = await Lead.countDocuments(filter);
 
-    // // Fetch user details for assigned_to
-    // const leadsWithAssignedTo = await Promise.all(
-    //   leads.map(async (lead) => {
-    //     const assignedToUser = await User.findOne({ userId: lead.assigned_to });
-    //     const leadWithAssignedTo = {
-    //       ...lead.toObject(),
-    //       assigned_to_name: assignedToUser
-    //         ? assignedToUser.userName
-    //         : lead.assigned_to,
-    //     };
-    //     return leadWithAssignedTo;
-    //   })
-    // );
+    // Fetch user details for assigned_to and each assignment's assigned_by
+    const leadsWithDetails = await Promise.all(
+      leads.map(async (lead) => {
+        // Fetch user details for assigned_to
+        const assignedToUser = lead.assigned_to
+          ? await User.findOne({ userId: lead.assigned_to })
+          : null;
+
+        // Fetch user details for each assignment's assigned_by
+        const assignmentsWithNames = await Promise.all(
+          lead.assignments.map(async (assignment) => {
+            const assignedByUser = await User.findOne({
+              userId: assignment.assigned_by,
+            });
+            return {
+              ...assignment.toObject(),
+              assigned_by_name: assignedByUser
+                ? assignedByUser.full_name
+                : "Unknown",
+              assigned_by_username: assignedByUser
+                ? assignedByUser.userName
+                : "Unknown",
+            };
+          })
+        );
+
+        return {
+          ...lead.toObject(),
+          assigned_to_name: assignedToUser
+            ? assignedToUser.userName
+            : "Unassigned",
+          assigned_to_full_name: assignedToUser
+            ? assignedToUser.full_name
+            : "Unassigned",
+          assignments: assignmentsWithNames,
+        };
+      })
+    );
 
     req.data = {
       statuscode: 200,
       responseData: {
-        leads: leads,
+        leads: leadsWithDetails,
         totalLeads,
         totalPages: Math.ceil(totalLeads / limit),
         currentPage: parseInt(page),
@@ -174,36 +206,99 @@ export const getLeadById = async (req, res, next) => {
       throw new Error(CONST_STRINGS.LEAD_NOT_FOUND);
     }
 
-    // Fetch user details for assigned_to and assignments.assigned_by
-    const assignedToUser = await User.findOne({ userId: lead.assigned_to });
-    if (!assignedToUser) {
-      throw new Error(CONST_STRINGS.USER_NOT_FOUND);
-    }
+    // Fetch user details for assigned_to
+    const assignedToUser = lead.assigned_to
+      ? await User.findOne({ userId: lead.assigned_to })
+      : null;
 
-    const assignments = await Promise.all(
+    // Fetch user details for each assignment's assigned_by
+    const assignmentsWithNames = await Promise.all(
       lead.assignments.map(async (assignment) => {
         const assignedByUser = await User.findOne({
           userId: assignment.assigned_by,
         });
         return {
           ...assignment.toObject(),
-          assigned_by: assignedByUser
+          assigned_by_name: assignedByUser
             ? assignedByUser.full_name
-            : assignment.assigned_by,
+            : "Unknown",
+          assigned_by_username: assignedByUser
+            ? assignedByUser.userName
+            : "Unknown",
         };
       })
     );
 
-    const leadWithAssignments = {
+    const leadWithDetails = {
       ...lead.toObject(),
-      assigned_to: assignedToUser.userName,
-      assignments,
+      assigned_to_name: assignedToUser ? assignedToUser.userName : "Unassigned",
+      assigned_to_full_name: assignedToUser
+        ? assignedToUser.full_name
+        : "Unassigned",
+      assignments: assignmentsWithNames,
     };
 
     req.data = {
       statuscode: 200,
-      responseData: leadWithAssignments,
+      responseData: leadWithDetails,
       responseMessage: CONST_STRINGS.LEAD_RETRIEVED_SUCCESS,
+    };
+    next();
+  } catch (err) {
+    req.err = err;
+    next(err);
+  }
+};
+
+export const leadFollowUp = async (req, res, next) => {
+  try {
+    req.data = { endpoint: "leadFollowUp" };
+
+    const { leadId } = req.params;
+    const { lastCallDate, lastCallStatus, nextCallScheduled } = req.body;
+
+    // Validate input
+    if (!leadId || !lastCallDate || !lastCallStatus || !nextCallScheduled) {
+      throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS);
+    }
+
+    // Fetch the lead
+    const lead = await Lead.findOne({ leadId });
+
+    if (!lead) {
+      throw new Error(CONST_STRINGS.LEAD_NOT_FOUND);
+    }
+
+    const followUpHistoryEntry = {
+      lastCallDate: new Date(lastCallDate),
+      lastCallStatus,
+      nextCallScheduled: new Date(nextCallScheduled),
+    };
+
+    // Update the lead with follow-up details
+    const updatedLead = await Lead.findOneAndUpdate(
+      { leadId },
+      {
+        $set: {
+          "followUp.lastCallDate": new Date(lastCallDate),
+          "followUp.lastCallStatus": lastCallStatus,
+          "followUp.nextCallScheduled": new Date(nextCallScheduled),
+        },
+        $push: {
+          followUpHistory: followUpHistoryEntry,
+        },
+      },
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedLead) {
+      throw new Error(CONST_STRINGS.LEAD_UPDATE_FAILED);
+    }
+
+    req.data = {
+      statuscode: 200,
+      responseData: updatedLead,
+      responseMessage: CONST_STRINGS.LEAD_UPDATED_SUCCESS,
     };
     next();
   } catch (err) {
@@ -361,33 +456,49 @@ export const assignLead = async (req, res, next) => {
     req.meta = { endpoint: "assignLead" };
 
     const { assignedTo, remarks, leadId } = req.query;
-    const { userId: assignedBy } = req.body;
+    const { userId } = req.body;
+    console.log(req.body);
 
-    if (!leadId || !assignedTo || !assignedBy) {
+    if (!leadId || !assignedTo) {
       throw new Error("Missing required inputs");
     }
 
-    const lead = await Lead.findOne({ leadId: leadId });
+    // Fetch the lead
+    const lead = await Lead.findOne({ leadId });
     if (!lead) {
       throw new Error(CONST_STRINGS.LEAD_NOT_FOUND);
     }
 
+    // Fetch the user to whom the lead is being assigned
     const assignedToUser = await User.findOne({ userId: assignedTo });
     if (!assignedToUser) {
       throw new Error(CONST_STRINGS.USER_NOT_FOUND);
     }
 
+    // Create a new assignment
     const newAssignment = {
-      assigned_by: assignedBy,
+      assigned_by: userId,
       assigned_to: assignedTo,
       assigned_date: new Date(),
     };
 
+    // Create an assignment history entry
+    const assignmentHistoryEntry = {
+      assigned_by: userId,
+      assigned_to: assignedTo,
+      assigned_date: new Date(),
+    };
+
+    // Update the lead with the new assignment and history
     lead.assignments.push(newAssignment);
     lead.assigned_to = assignedTo;
     lead.isAssigned = true;
     lead.remarks = remarks || lead.remarks;
 
+    // Add to assignment history
+    lead.assignmentHistory.push(assignmentHistoryEntry);
+
+    // Save the updated lead
     await lead.save();
 
     req.data = {

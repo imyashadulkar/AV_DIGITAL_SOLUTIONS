@@ -6,6 +6,7 @@ import {
   extractDataFromExcel,
   getAllLeads,
   getLeadById,
+  leadFollowUp,
   saveAgentDetails,
   saveContactDetails,
 } from "../controllers/excelapi.js";
@@ -140,7 +141,7 @@ router.post(
  *         schema:
  *           type: string
  *         description: Assignment status of the lead.
- *         example: "Unassigned"
+ *         example: "assigned or Unassigned or empty"
  *       - in: query
  *         name: sortField
  *         schema:
@@ -801,6 +802,114 @@ router.post(
  */
 
 router.post(LEADS_ROUTES.ASSIGN_LEAD, assignLead, successResponse);
+
+/**
+ * @swagger
+ * /crm/{leadId}/follow-up:
+ *   put:
+ *     summary: Update Lead Follow-Up Details
+ *     description: Updates follow-up details for a specific lead.
+ *     tags:
+ *       - Leads
+ *     parameters:
+ *       - in: path
+ *         name: leadId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the lead to update follow-up details for.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               lastCallDate:
+ *                 type: string
+ *                 format: date-time
+ *                 example: "2024-07-25T14:30:00Z"
+ *                 description: The date of the last call.
+ *               lastCallStatus:
+ *                 type: string
+ *                 enum: ["Completed", "Pending", "Failed"]
+ *                 example: "Completed"
+ *                 description: The status of the last call.
+ *               nextCallScheduled:
+ *                 type: string
+ *                 format: date-time
+ *                 example: "2024-08-01T10:00:00Z"
+ *                 description: The date when the next call is scheduled.
+ *     responses:
+ *       200:
+ *         description: Follow-up details updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statuscode:
+ *                   type: integer
+ *                   example: 200
+ *                   description: HTTP status code of the response.
+ *                 responseData:
+ *                   type: object
+ *                   properties:
+ *                     leadId:
+ *                       type: string
+ *                       example: "10188e23-2f53-48cc-bdd0-e2ecbc2506b6"
+ *                       description: The ID of the lead whose follow-up details were updated.
+ *                     followUp:
+ *                       type: object
+ *                       properties:
+ *                         lastCallDate:
+ *                           type: string
+ *                           format: date-time
+ *                           example: "2024-07-25T14:30:00Z"
+ *                         lastCallStatus:
+ *                           type: string
+ *                           enum: ["Completed", "Pending", "Failed"]
+ *                           example: "Completed"
+ *                         nextCallScheduled:
+ *                           type: string
+ *                           format: date-time
+ *                           example: "2024-08-01T10:00:00Z"
+ *                       description: The updated follow-up details for the lead.
+ *                 responseMessage:
+ *                   type: string
+ *                   example: "Follow-up details updated successfully."
+ *                   description: A message indicating the outcome of the operation.
+ *       400:
+ *         description: Bad request, invalid follow-up details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Invalid follow-up details."
+ *       404:
+ *         description: Lead not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Lead not found."
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
+
+router.put(LEADS_ROUTES.LEAD_FOLLOW_UP, leadFollowUp, successResponse);
 
 
 
