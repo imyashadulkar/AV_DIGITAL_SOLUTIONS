@@ -181,6 +181,7 @@ export const GOOGLE_SHEETS_API = {
 export const CHAT_APP = {
   CREATE_CHAT: "/create-chat",
   GET_CHAT_BY_ID: "/get-chat-by-chat-id/:chatId",
+  GET_CHAT_BY_USER_ID: "/get-chat-by-user-id/:userId",
   DELETE_CHAT_BY_ID: "/delete-chat-by-chat-id/:chatId",
   SEND_MESSAGE: "/send-message",
   CREATE_GROUP: "/create-group",

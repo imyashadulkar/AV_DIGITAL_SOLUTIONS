@@ -10,6 +10,7 @@ import {
   createChat,
   deleteChatById,
   sendMessage,
+  getChatByUserId,
 } from "../controllers/chatApp/chatController.js";
 import { CHAT_APP } from "../helpers/constants.js";
 import { verifyToken } from "../middleware/auth.js";
@@ -73,6 +74,69 @@ const router = express.Router();
  *                   example: "Internal Server Error."
  */
 router.get(CHAT_APP.GET_CHAT_BY_ID, verifyToken, getChatById, successResponse);
+
+/**
+ * @swagger
+ * /chat/get-chat-by-user-id/{userId}:
+ *   get:
+ *     summary: Get chat by userId
+ *     description: Retrieve a chat by its unique identifier.
+ *     tags:
+ *       - Chats
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: userId of the chat to retrieve.
+ *     responses:
+ *       200:
+ *         description: Retrieved chat successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 userId:
+ *                   type: string
+ *                   example: "60d5f7f8f6e8b40f9c9e75c1"
+ *                 participants:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       name:
+ *                         type: string
+ *                         example: "John Doe"
+ *       404:
+ *         description: Chat not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Chat not found."
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Internal Server Error."
+ */
+
+router.get(
+  CHAT_APP.GET_CHAT_BY_USER_ID,
+  verifyToken,
+  getChatByUserId,
+  successResponse
+);
 
 /**
  * @swagger

@@ -64,6 +64,52 @@ export const createChat = async (req, res, next) => {
   }
 };
 
+export const getChatByUserId = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+
+    // Retrieve all chats involving the userId and populate participants' and messages' sender names
+    const chats = await Chat.find({ userId })
+      .populate({
+        path: "participants",
+        select: "name userId", // Select fields from User model
+        model: User,
+      })
+      .populate({
+        path: "messages.sender",
+        select: "name userId", // Select fields from User model for sender
+        model: User,
+      });
+
+    if (!chats || chats.length === 0) {
+      throw new Error(CONST_STRINGS.CHAT_NOT_FOUND);
+    }
+
+    // Construct response data
+    const responseData = chats.map((chat) => ({
+      userId: chat.userId,
+      chatId: chat._id,
+      participants: chat.participants.map((participant) => ({
+        userId: participant.userId,
+        name: participant.name,
+      })),
+      messages: chat.messages.map((message) => ({
+        sender: {
+          userId: message.sender.userId,
+          name: message.sender.name,
+        },
+        content: message.content,
+        timestamp: message.timestamp,
+      })),
+    }));
+
+    req.data = { statuscode: 200, responseData };
+    next();
+  } catch (error) {
+    req.err = error;
+  }
+};
+
 // Delete chat by ID
 export const deleteChatById = async (req, res, next) => {
   try {
