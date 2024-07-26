@@ -3,6 +3,7 @@ import { upload } from "../middleware/multer.js";
 
 import {
   assignLead,
+  createLead,
   extractDataFromExcel,
   getAllLeads,
   getLeadById,
@@ -102,6 +103,190 @@ router.post(
   extractDataFromExcel,
   successResponse
 );
+
+/**
+ * @swagger
+ * /crm/create-lead:
+ *   post:
+ *     summary: Create a new lead
+ *     description: Creates a new lead with the provided details and saves it to the database.
+ *     tags:
+ *       - Leads
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               platform:
+ *                 type: string
+ *                 example: "Facebook"
+ *                 description: The platform where the lead was acquired.
+ *               phone_number:
+ *                 type: string
+ *                 example: "+1234567890"
+ *                 description: The phone number of the lead.
+ *               full_name:
+ *                 type: string
+ *                 example: "John Doe"
+ *                 description: The full name of the lead.
+ *               campaign_name:
+ *                 type: string
+ *                 example: "Summer Sale"
+ *                 description: The name of the campaign associated with the lead.
+ *               ad_name:
+ *                 type: string
+ *                 example: "Ad123"
+ *                 description: The name of the ad that generated the lead.
+ *               stage:
+ *                 type: string
+ *                 example: "Not qualified"
+ *                 description: The stage of the lead in the sales process.
+ *               source:
+ *                 type: string
+ *                 example: "Unpaid"
+ *                 description: The source of the lead.
+ *               assigned_to:
+ *                 type: string
+ *                 example: "Unassigned"
+ *                 description: The person or team assigned to this lead.
+ *               status:
+ *                 type: string
+ *                 example: "Incomplete form"
+ *                 description: The current status of the lead.
+ *               remarks:
+ *                 type: string
+ *                 example: "No Remarks"
+ *                 description: Additional remarks about the lead.
+ *               isAssigned:
+ *                 type: boolean
+ *                 example: false
+ *                 description: Whether the lead has been assigned.
+ *               followUp:
+ *                 type: object
+ *                 properties:
+ *                   lastCallDate:
+ *                     type: string
+ *                     format: date-time
+ *                     example: null
+ *                     description: The date of the last call.
+ *                   lastCallStatus:
+ *                     type: string
+ *                     example: "Pending"
+ *                     description: The status of the last call.
+ *                   nextCallScheduled:
+ *                     type: string
+ *                     format: date-time
+ *                     example: null
+ *                     description: The date and time for the next scheduled call.
+ *     responses:
+ *       200:
+ *         description: Lead created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statuscode:
+ *                   type: integer
+ *                   example: 200
+ *                   description: HTTP status code of the response.
+ *                 responseData:
+ *                   type: object
+ *                   description: The saved lead object.
+ *                   properties:
+ *                     leadId:
+ *                       type: string
+ *                       example: "a5b7c9d8-e9f0-1234-5678-9abc0d123456"
+ *                       description: The unique identifier for the lead.
+ *                     platform:
+ *                       type: string
+ *                       example: "Facebook"
+ *                     phone_number:
+ *                       type: string
+ *                       example: "+1234567890"
+ *                     full_name:
+ *                       type: string
+ *                       example: "John Doe"
+ *                     campaign_name:
+ *                       type: string
+ *                       example: "Summer Sale"
+ *                     ad_name:
+ *                       type: string
+ *                       example: "Ad123"
+ *                     timestamp:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2024-07-26T10:00:00Z"
+ *                     stage:
+ *                       type: string
+ *                       example: "Not qualified"
+ *                     source:
+ *                       type: string
+ *                       example: "Unpaid"
+ *                     assigned_to:
+ *                       type: string
+ *                       example: "Unassigned"
+ *                     status:
+ *                       type: string
+ *                       example: "Incomplete form"
+ *                     remarks:
+ *                       type: string
+ *                       example: "No Remarks"
+ *                     isAssigned:
+ *                       type: boolean
+ *                       example: false
+ *                     followUp:
+ *                       type: object
+ *                       properties:
+ *                         lastCallDate:
+ *                           type: string
+ *                           format: date-time
+ *                           example: null
+ *                         lastCallStatus:
+ *                           type: string
+ *                           example: "Pending"
+ *                         nextCallScheduled:
+ *                           type: string
+ *                           format: date-time
+ *                           example: null
+ *       400:
+ *         description: Bad request due to invalid or missing input data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Invalid input data. Please check your request."
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Internal server error."
+ */
+
+
+router.post(
+  EXCEL_ROUTES.CREATE_SINGLE_LEAD,
+  verifyToken,
+  createLead,
+  successResponse
+);
+
 
 /**
  * @swagger

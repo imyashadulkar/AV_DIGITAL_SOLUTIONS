@@ -574,9 +574,6 @@ router.post(AUTH_ROUTES.LOGOUT_USER, logoutUser, successResponse);
  *               userId:
  *                 type: string
  *                 example: "5f7d13a5-0768-4fa1-b77b-3b85c687a5f2"
- *               password:
- *                 type: string
- *                 example: currentPassword123
  *               newPassword:
  *                 type: string
  *                 example: newPassword456

@@ -80,6 +80,64 @@ export const extractDataFromExcel = async (req, res, next) => {
   }
 };
 
+export const createLead = async (req, res, next) => {
+  try {
+    req.meta = { endpoint: "createLead" };
+
+    const {
+      platform,
+      phone_number,
+      full_name,
+      campaign_name,
+      ad_name,
+      stage,
+      source,
+      assigned_to,
+      status,
+      remarks,
+      isAssigned,
+      followUp,
+    } = req.body;
+
+    // Create a new lead object
+    const newLead = new Lead({
+      leadId: uuidv4(),
+      platform,
+      phone_number,
+      full_name,
+      campaign_name,
+      ad_name,
+      timestamp: new Date(),
+      stage: stage || "Not qualified",
+      source: source || "Unpaid",
+      assigned_to: assigned_to || "Unassigned",
+      status: status || "Incomplete form",
+      remarks: remarks || "No Remarks",
+      isAssigned: isAssigned || false,
+      followUp: followUp || {
+        lastCallDate: null,
+        lastCallStatus: "Pending",
+        nextCallScheduled: null,
+      },
+    });
+
+    // Save the new lead
+    const savedLead = await newLead.save();
+
+    req.data = {
+      statuscode: 200,
+      responseData: savedLead,
+      responseMessage: "Lead created successfully",
+    };
+
+    next();
+  } catch (err) {
+    console.error("Error in createLead:", err);
+    req.err = err;
+    next(err);
+  }
+};
+
 export const getAllLeads = async (req, res, next) => {
   try {
     req.data = { endpoint: "getAllLeads" };

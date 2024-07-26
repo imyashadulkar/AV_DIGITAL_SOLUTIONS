@@ -167,6 +167,7 @@ export const AUTH_ROUTES = {
 
 export const EXCEL_ROUTES = {
   GET_DATA_FROM_EXCEL: "/get-data-from-excel",
+  CREATE_SINGLE_LEAD: "/create-single-lead",
 };
 export const LEADS_ROUTES = {
   RETRIEVE_LEAD_BY_USING_ID: "/get-lead-by-leadId/:leadId",
