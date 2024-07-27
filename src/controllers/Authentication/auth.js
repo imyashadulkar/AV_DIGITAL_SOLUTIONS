@@ -444,7 +444,19 @@ export const getForgotPasswordCode = async (req, res, next) => {
     forgotPassowrdVerification.verified = false;
     await user.save();
 
-    // Send the verification code to the user's email (implementation not provided)
+    const OTP = forgotPassowrdVerification.code;
+    const emailData = {
+      to: email,
+      subject: "OTP Verification",
+      body: {
+        name: "Razzaq Shikalgar",
+        intro: `Welcome to Your Product! Here is your OTP: ${OTP}`,
+        outro:
+          "This OTP code is valid for 5 minutes. If you didn't request this OTP, please ignore this email.",
+      },
+    };
+
+    sendEmail(emailData);
 
     const responseMessage =
       CONST_STRINGS.FORGOT_PASSWORD_CODE_SENT_SUCCESSFULLY;
