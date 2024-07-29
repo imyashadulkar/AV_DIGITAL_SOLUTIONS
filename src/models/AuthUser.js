@@ -28,6 +28,10 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    organizationId: {
+      type: String,
+      default: ''
+    },
     userName: {
       type: String,
       required: true,

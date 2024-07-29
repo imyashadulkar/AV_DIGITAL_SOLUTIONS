@@ -23,7 +23,7 @@ export const validateTokenResponse = async (req, res, next) => {
     const token = req.cookies.jwt;
     const validToken = validateToken(token);
     if (validToken.success) {
-      const { userId, email, role, subUserId, userRole, isAuthUser } =
+      const { userId, email, role, subUserId, userRole, isAuthUser, organizationId } =
         validToken.data;
       const responseMessage = CONST_STRINGS.USER_IDENTITY_VERIFIED;
       const responseData = {
@@ -32,6 +32,7 @@ export const validateTokenResponse = async (req, res, next) => {
         role,
         userRole,
         subUserId,
+        organizationId,
         isAuthUser,
       };
       req.data = {
@@ -298,6 +299,7 @@ export const loginWithEmailPassword = async (req, res, next) => {
       userId,
       password: hashedPassword,
       userRole,
+      organizationId,
       emailVerification,
     } = user;
     req.body = { ...req.body, userId };
@@ -329,12 +331,13 @@ export const loginWithEmailPassword = async (req, res, next) => {
       userId,
       email,
       role,
+      organizationId,
       userRole,
       isAdmin: false,
       isAuthUser: true,
     });
 
-    console.log(token);
+    // console.log(token);
 
     res.cookie("jwt", token, getCookieOptions("login"));
     const responseMessage = CONST_STRINGS.USER_LOGGED_IN_SUCCESSFULLY;
@@ -342,6 +345,7 @@ export const loginWithEmailPassword = async (req, res, next) => {
       userId,
       email,
       userRole,
+      organizationId,
       role,
       token,
       isAuthUser: true,

@@ -5,19 +5,22 @@ export const verifyToken = async (req, res, next) => {
   const token = req.cookies.jwt;
   console.log({ token });
   const validToken = validateToken(token);
+  console.log({ data: validToken.data });
+
   if (validToken.success) {
-    console.log({ validToken });
     req.body = {
       ...req.body,
       ...validToken.data,
       isAdmin: validToken.data.isAdmin,
       userRole: validToken.data.userRole,
+      organizationId: validToken.data.organizationId,
     };
     req.data = {
       ...req.body,
       ...validToken.data,
       isAdmin: validToken.data.isAdmin,
       userRole: validToken.data.userRole,
+      organizationId: validToken.data.organizationId,
     };
     next();
   } else {

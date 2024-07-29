@@ -106,7 +106,7 @@ router.post(
 
 /**
  * @swagger
- * /crm/create-lead:
+ * /crm/create-single-lead:
  *   post:
  *     summary: Create a new lead
  *     description: Creates a new lead with the provided details and saves it to the database.
@@ -279,14 +279,12 @@ router.post(
  *                   example: "Internal server error."
  */
 
-
 router.post(
   EXCEL_ROUTES.CREATE_SINGLE_LEAD,
   verifyToken,
   createLead,
   successResponse
 );
-
 
 /**
  * @swagger
@@ -1095,8 +1093,6 @@ router.post(LEADS_ROUTES.ASSIGN_LEAD, assignLead, successResponse);
  */
 
 router.put(LEADS_ROUTES.LEAD_FOLLOW_UP, leadFollowUp, successResponse);
-
-
 
 /**
  * @swagger

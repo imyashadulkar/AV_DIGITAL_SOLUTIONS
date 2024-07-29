@@ -53,6 +53,7 @@ export const setOrganization = async (req, res, next) => {
 
     const authUser = await User.findOne({ userId });
     authUser.userRole = "organizationAdmin";
+    authUser.organizationId = organization.organizationId;
     authUser.save();
 
     organization = await organization.save();
