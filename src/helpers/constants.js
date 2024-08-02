@@ -90,6 +90,8 @@ export const CONST_STRINGS = {
   LEAD_NOT_FOUND: "Lead not found",
   LEAD_UPDATE_FAILED: "Lead update failed",
   LEAD_UPDATED_SUCCESS: "followup updated successfully",
+  LEAD_UPDATED_SUCCESSFULLY: "Lead updated successfully",
+  LEAD_DELETED_SUCCESSFULLY: "Lead deleted successfully",
 };
 
 export const TYPES = {
@@ -176,6 +178,8 @@ export const LEADS_ROUTES = {
   GET_CHARTS_FOR_LEADS: "/get-charts-for-leads",
   ASSIGN_LEAD: "/assign-lead",
   LEAD_FOLLOW_UP: "/:leadId/follow-up",
+  UPDATE_LEAD_STATUS_BY_LEAD_ID: "/update-lead-status-by-leadId",
+  DELETE_LEAD_BY_LEAD_ID: "/delete-lead-by-leadId",
 };
 
 export const GOOGLE_SHEETS_API = {

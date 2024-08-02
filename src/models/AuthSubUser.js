@@ -38,6 +38,18 @@ const authSubUserSchema = new mongoose.Schema(
       enum: permissionEnum,
       default: "Read",
     },
+    projects: [
+      {
+        projectId: {
+          type: String,
+          required: true,
+        },
+        role: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
   },
   { timestamps: true }
 );

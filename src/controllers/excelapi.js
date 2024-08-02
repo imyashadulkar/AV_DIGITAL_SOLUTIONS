@@ -20,6 +20,8 @@ export const extractDataFromExcel = async (req, res, next) => {
     const filePath = req.files.excelFile.tempFilePath;
     console.log("File path:", filePath);
 
+    const { userId, organizationId, projectId } = req.body;
+
     const workbook = xlsx.readFile(filePath);
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
@@ -357,6 +359,108 @@ export const leadFollowUp = async (req, res, next) => {
       statuscode: 200,
       responseData: updatedLead,
       responseMessage: CONST_STRINGS.LEAD_UPDATED_SUCCESS,
+    };
+    next();
+  } catch (err) {
+    req.err = err;
+    next(err);
+  }
+};
+
+export const updateLeadStatus = async (req, res, next) => {
+  try {
+    req.meta = { endpoint: "updateLeadStatus" };
+
+    const { leadId, assignedTo, stage, lastCallRemarks, assignedBy, userId } =
+      req.body;
+
+    if (!leadId) {
+      throw new Error(CONST_STRINGS.MISSING_LEAD_ID);
+    }
+
+    // Prepare update fields
+    const updateFields = {};
+    if (stage) {
+      updateFields.stage = stage;
+    }
+    if (lastCallRemarks) {
+      updateFields.lastCallRemarks = lastCallRemarks;
+    }
+
+    if (assignedTo) {
+      // Prepare assignment data
+      const assignmentData = {
+        assigned_by: assignedBy || userId,
+        assigned_to: assignedTo,
+        assigned_date: new Date(),
+      };
+
+      // Update or add assignment
+      updateFields["assignments.$[elem]"] = assignmentData;
+      updateFields.assigned_to = assignedTo;
+      updateFields.isAssigned = true;
+
+      // Ensure correct array filter
+      await Lead.findOneAndUpdate(
+        { leadId },
+        { $set: updateFields },
+        {
+          arrayFilters: [{ "elem.assigned_to": assignedTo }],
+          new: true,
+          upsert: false,
+        }
+      );
+    } else {
+      // Update document without modifying assignments
+      await Lead.findOneAndUpdate(
+        { leadId },
+        { $set: updateFields },
+        { new: true }
+      );
+    }
+
+    // Fetch the updated lead
+    const updatedLead = await Lead.findOne({ leadId });
+
+    const responseMessage = CONST_STRINGS.LEAD_UPDATED_SUCCESSFULLY;
+    const responseData = updatedLead;
+
+    req.data = {
+      statuscode: 200,
+      responseData: responseData || {},
+      responseMessage: responseMessage || "",
+    };
+    next();
+  } catch (err) {
+    req.err = err;
+    next(err);
+  }
+};
+
+export const deleteLead = async (req, res, next) => {
+  try {
+    req.meta = { endpoint: "deleteLead" };
+
+    const { leadId } = req.body;
+
+    if (!leadId) {
+      throw new Error(CONST_STRINGS.MISSING_LEAD_ID);
+    }
+
+    // Find and delete the lead
+    const result = await Lead.findOneAndDelete({ leadId });
+
+    if (!result) {
+      throw new Error(CONST_STRINGS.LEAD_NOT_FOUND);
+    }
+
+    const responseMessage = CONST_STRINGS.LEAD_DELETED_SUCCESSFULLY;
+    const responseData = { leadId };
+
+    req.data = {
+      statuscode: 200,
+      responseData: responseData || {},
+      responseMessage: responseMessage || "",
     };
     next();
   } catch (err) {

@@ -43,6 +43,9 @@ const followUpHistorySchema = new mongoose.Schema(
 const leadSchema = new mongoose.Schema(
   {
     leadId: { type: String, required: true, unique: true },
+    userId: { type: String, required: true, unique: true },
+    organizationId: { type: String, required: true, unique: true },
+    projectId: { type: String, required: true, unique: true },
     platform: { type: String, required: true },
     phone_number: { type: String, required: true },
     full_name: { type: String, required: true },

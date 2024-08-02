@@ -3,22 +3,22 @@ import mongoose from "mongoose";
 const verificationObject = {
   _id: false,
   code: {
-    type: String
+    type: String,
   },
   createdAt: {
-    type: Date
+    type: Date,
   },
   attempts: {
     type: Number,
-    default: 0
+    default: 0,
   },
   verified: {
     type: Boolean,
-    default: false
+    default: false,
   },
   verifiedAt: {
-    type: Date
-  }
+    type: Date,
+  },
 };
 
 const userSchema = new mongoose.Schema(
@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema(
     },
     organizationId: {
       type: String,
-      default: ''
+      default: "",
     },
     userName: {
       type: String,
@@ -39,12 +39,12 @@ const userSchema = new mongoose.Schema(
     shortCode: {
       type: String,
       required: true,
-      unique: true
+      unique: true,
     },
     email: {
       type: String,
       required: true,
-      unique: true
+      unique: true,
     },
     phoneNumber: {
       type: String,
@@ -53,37 +53,49 @@ const userSchema = new mongoose.Schema(
     previousEmails: {
       type: Array,
       required: true,
-      default: []
+      default: [],
     },
     password: {
       type: String,
-      required: true
+      required: true,
     },
-     userRole: {
-     type: String,
-      required: true
+    userRole: {
+      type: String,
+      required: true,
     },
     isBlocked: {
       type: Boolean,
       required: true,
-      default: false
+      default: false,
     },
     logins: {
       type: Array,
       required: true,
-      default: []
+      default: [],
     },
     emailVerification: verificationObject,
     forgotPassowrdVerification: verificationObject,
     changeEmailVerification: {
       ...verificationObject,
       currentEmailCode: {
-        type: String
+        type: String,
       },
       newEmail: {
-        type: String
-      }
-    }
+        type: String,
+      },
+    },
+    projects: [
+      {
+        projectId: {
+          type: String,
+          required: true,
+        },
+        role: {
+          type: String,
+          required: true,
+        },
+      },
+    ],
   },
   { timestamps: true }
 );

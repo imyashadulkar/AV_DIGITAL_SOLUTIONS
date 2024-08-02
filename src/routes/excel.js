@@ -4,12 +4,14 @@ import { upload } from "../middleware/multer.js";
 import {
   assignLead,
   createLead,
+  deleteLead,
   extractDataFromExcel,
   getAllLeads,
   getLeadById,
   leadFollowUp,
   saveAgentDetails,
   saveContactDetails,
+  updateLeadStatus,
 } from "../controllers/excelapi.js";
 import {
   EXCEL_ROUTES,
@@ -539,6 +541,209 @@ router.get(
   LEADS_ROUTES.RETRIEVE_LEAD_BY_USING_ID,
   verifyToken,
   getLeadById,
+  successResponse
+);
+
+/**
+ * @swagger
+ * /crm/update-lead-status-by-leadId:
+ *   put:
+ *     summary: Update Lead Status
+ *     description: Updates the status of a lead, including assignment details.
+ *     tags:
+ *       - Leads
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       description: Details to update the lead status.
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               leadId:
+ *                 type: string
+ *                 description: Unique identifier of the lead.
+ *                 example: "88f51423-6bbb-431b-90f5-fdab388032bd"
+ *               assignedTo:
+ *                 type: string
+ *                 description: User ID to whom the lead is assigned.
+ *                 example: "38719252-bcb6-4a2e-8de7-b7aab9307156"
+ *               stage:
+ *                 type: string
+ *                 description: Current stage of the lead.
+ *                 example: "Not qualified"
+ *               lastCallRemarks:
+ *                 type: string
+ *                 description: Remarks from the last call.
+ *                 example: "High priority lead"
+ *               assignedBy:
+ *                 type: string
+ *                 description: User ID of the person assigning the lead.
+ *                 example: "ecd1f041-742e-446a-8617-55060cef2545"
+ *             required:
+ *               - leadId
+ *     responses:
+ *       200:
+ *         description: Lead status updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statuscode:
+ *                   type: integer
+ *                   example: 200
+ *                 responseData:
+ *                   type: object
+ *                   description: Updated lead object.
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       description: Unique identifier of the lead.
+ *                       example: "88f51423-6bbb-431b-90f5-fdab388032bd"
+ *                     assigned_to:
+ *                       type: string
+ *                       description: User ID to whom the lead is assigned.
+ *                       example: "38719252-bcb6-4a2e-8de7-b7aab9307156"
+ *                     stage:
+ *                       type: string
+ *                       description: Current stage of the lead.
+ *                       example: "Not qualified"
+ *                     lastCallRemarks:
+ *                       type: string
+ *                       description: Remarks from the last call.
+ *                       example: "High priority lead"
+ *                     assignments:
+ *                       type: array
+ *                       description: Array of assignment objects.
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           assigned_by:
+ *                             type: string
+ *                             description: User ID of the person who assigned the lead.
+ *                             example: "ecd1f041-742e-446a-8617-55060cef2545"
+ *                           assigned_to:
+ *                             type: string
+ *                             description: User ID to whom the lead is assigned.
+ *                             example: "38719252-bcb6-4a2e-8de7-b7aab9307156"
+ *                           assigned_date:
+ *                             type: string
+ *                             description: Date of assignment.
+ *                             example: "2024-07-25T13:47:21.567Z"
+ *       400:
+ *         description: Bad request, missing required fields.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Lead ID is required."
+ *       404:
+ *         description: Lead not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Lead not found."
+ */
+
+router.put(
+  LEADS_ROUTES.UPDATE_LEAD_STATUS_BY_LEAD_ID,
+  verifyToken,
+  updateLeadStatus,
+  successResponse
+);
+
+/**
+ * @swagger
+ * /crm/delete-lead-by-leadId:
+ *   delete:
+ *     summary: Delete Lead
+ *     description: Deletes a lead by its ID.
+ *     tags:
+ *       - Leads
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       description: Lead ID to be deleted.
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               leadId:
+ *                 type: string
+ *                 description: Unique identifier of the lead to be deleted.
+ *                 example: "88f51423-6bbb-431b-90f5-fdab388032bd"
+ *             required:
+ *               - leadId
+ *     responses:
+ *       200:
+ *         description: Lead deleted successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statuscode:
+ *                   type: integer
+ *                   example: 200
+ *                 responseData:
+ *                   type: object
+ *                   description: Details of the deleted lead.
+ *                   properties:
+ *                     leadId:
+ *                       type: string
+ *                       description: Unique identifier of the deleted lead.
+ *                       example: "88f51423-6bbb-431b-90f5-fdab388032bd"
+ *                 responseMessage:
+ *                   type: string
+ *                   example: "Lead deleted successfully."
+ *       400:
+ *         description: Bad request, missing lead ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Lead ID is required."
+ *       404:
+ *         description: Lead not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Lead not found."
+ */
+
+router.delete(
+  LEADS_ROUTES.DELETE_LEAD_BY_LEAD_ID,
+  verifyToken,
+  deleteLead,
   successResponse
 );
 

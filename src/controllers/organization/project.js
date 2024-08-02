@@ -1,4 +1,4 @@
-import { Organization } from "../../models/index.js";
+import { AuthSubUser, Organization, User } from "../../models/index.js";
 import { CONST_STRINGS } from "../../helpers/constants.js";
 import { v4 as uuidv4 } from "uuid";
 
@@ -6,16 +6,22 @@ export const createProject = async (req, res, next) => {
   try {
     req.data = { endpoint: "createProject" };
 
-    const { organizationId, projectName } = req.body;
+    const { organizationId, projectName, userId } = req.body;
 
     const organization = await Organization.findOne({ organizationId });
     if (!organization) {
       throw new Error(CONST_STRINGS.ORGANIZATION_NOT_FOUND);
     }
 
-    if (!user.license.isActive) {
-      throw new Error(CONST_STRINGS.LICENSE_NOT_ACTIVE);
+    const user = await User.findOne({ userId });
+    if (!user) {
+      throw new Error(CONST_STRINGS.USER_NOT_FOUND);
     }
+
+    //TODO: Check if the user has the required permissions to create a project
+    // if (!user.license.isActive) {
+    //   throw new Error(CONST_STRINGS.LICENSE_NOT_ACTIVE);
+    // }
 
     const projectId = uuidv4();
 
@@ -27,6 +33,16 @@ export const createProject = async (req, res, next) => {
 
     organization.projects.push(newProject);
     const updatedOrganization = await organization.save();
+
+    user.projects.push({ projectId, role: "admin" });
+    const updatedUser = await user.save();
+
+    const project = user.projects.find(
+      (project) => project.projectId === projectId
+    );
+    if (!project) {
+      throw new Error(CONST_STRINGS.PROJECT_NOT_FOUND);
+    }
 
     req.data = {
       statuscode: 201,
@@ -65,6 +81,31 @@ export const addUserToProject = async (req, res, next) => {
 
     project.subUsers.push({ subuserId, role });
     const updatedOrganization = await organization.save();
+
+    // Also ensure that the subuser is created or updated in the AuthSubUser schema
+    await Promise.all([
+      AuthSubUser.findOneAndUpdate(
+        { subUserId: subuserId },
+        {
+          userId: subuserId, // or other unique user identifier
+          $addToSet: {
+            // Ensure projects are updated without duplicates
+            projects: { projectId, role },
+          },
+        },
+        { upsert: true, new: true }
+      ),
+      User.findOneAndUpdate(
+        { userId: subuserId },
+        {
+          $addToSet: {
+            // Ensure projects are updated without duplicates
+            projects: { projectId, role },
+          },
+        },
+        { upsert: true, new: true }
+      ),
+    ]);
 
     req.data = {
       statuscode: 200,

@@ -23,8 +23,16 @@ export const validateTokenResponse = async (req, res, next) => {
     const token = req.cookies.jwt;
     const validToken = validateToken(token);
     if (validToken.success) {
-      const { userId, email, role, subUserId, userRole, isAuthUser, organizationId } =
-        validToken.data;
+      const {
+        userId,
+        email,
+        role,
+        subUserId,
+        userRole,
+        isAuthUser,
+        organizationId,
+        projectId,
+      } = validToken.data;
       const responseMessage = CONST_STRINGS.USER_IDENTITY_VERIFIED;
       const responseData = {
         userId,
@@ -33,6 +41,7 @@ export const validateTokenResponse = async (req, res, next) => {
         userRole,
         subUserId,
         organizationId,
+        projectId,
         isAuthUser,
       };
       req.data = {
@@ -300,12 +309,15 @@ export const loginWithEmailPassword = async (req, res, next) => {
       password: hashedPassword,
       userRole,
       organizationId,
+      projectId,
       emailVerification,
+      projects, // Add this line to extract the projects field
     } = user;
+
     req.body = { ...req.body, userId };
 
     if (!emailVerification.verified) {
-      // TODO Redirect to Verifiy Code
+      // TODO Redirect to Verify Code
       const error = new Error(CONST_STRINGS.EMAIL_NOT_VERIFIED);
       error.meta = { email };
       throw error;
@@ -333,13 +345,14 @@ export const loginWithEmailPassword = async (req, res, next) => {
       role,
       organizationId,
       userRole,
+      projectId,
       isAdmin: false,
       isAuthUser: true,
     });
 
-    // console.log(token);
-
     res.cookie("jwt", token, getCookieOptions("login"));
+
+    // Include projects in the responseData
     const responseMessage = CONST_STRINGS.USER_LOGGED_IN_SUCCESSFULLY;
     const responseData = {
       userId,
@@ -347,9 +360,12 @@ export const loginWithEmailPassword = async (req, res, next) => {
       userRole,
       organizationId,
       role,
+      projectId,
       token,
       isAuthUser: true,
+      projects, // Add projects to the response
     };
+
     req.data = {
       statuscode: 200,
       responseData: responseData || {},
