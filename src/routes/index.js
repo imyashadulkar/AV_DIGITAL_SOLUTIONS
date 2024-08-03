@@ -47,7 +47,7 @@ const router = express.Router();
 // });
 // });
 
-router.get(BASE_ROUTES.PING_ROUTE, async (req, res) => {
+router.get(BASE_ROUTES.WEBHOOK_ROUTE, async (req, res) => {
   const challenge = req.query["hub.challenge"];
   const verifyToken = req.query["hub.verify_token"]; // This token should match the one you set in your Facebook app
 
