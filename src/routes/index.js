@@ -13,7 +13,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /ping:
+ * /webhooks:
  *   get:
  *     summary: Ping the server to check the status
  *     description: Ping the server to check if it is running.
@@ -37,14 +37,50 @@ const router = express.Router();
  *                   example: "Server is running. Code deployed on 01-June-2024."
  */
 // Ping route to check the server status
+// router.get(BASE_ROUTES.PING_ROUTE, async (req, res) => {
+//   console.log("not getting anything");
+//   const challenge = req.query["hub.challenge"];
+//   res.status(200).send(challenge);
+//   // res.status(200).json({
+//   success: true,
+//   message: CONST_STRINGS.SERVER_RUNNING_MESSAGE,
+// });
+// });
+
 router.get(BASE_ROUTES.PING_ROUTE, async (req, res) => {
-  console.log("not getting anything");
-  const challenge = req.query['hub.challenge'];
-  res.status(200).send(challenge);
-  // res.status(200).json({
-  //   success: true,
-  //   message: CONST_STRINGS.SERVER_RUNNING_MESSAGE,
-  // });
+  const challenge = req.query["hub.challenge"];
+  const verifyToken = req.query["hub.verify_token"]; // This token should match the one you set in your Facebook app
+
+  // Verify the token
+  if (verifyToken === process.env.FACEBOOK_VERIFY_TOKEN) {
+    console.log("Webhook verified successfully.");
+    return res.status(200).send(challenge);
+  } else {
+    console.error("Verification failed.");
+    return res.status(403).send("Verification failed");
+  }
+});
+
+// This route handles incoming lead data from Facebook
+router.post(BASE_ROUTES.PING_ROUTE, async (req, res) => {
+  console.log("Received lead data:", req.body);
+
+  // Check if the request contains leadgen data
+  if (req.body.object === "page") {
+    req.body.entry.forEach((entry) => {
+      entry.changes.forEach((change) => {
+        if (change.field === "leadgen") {
+          const leadData = change.value;
+          // Process the lead data (e.g., save to your database)
+          console.log("New lead received:", leadData);
+          // Here you can implement your logic to save the lead data
+        }
+      });
+    });
+    return res.status(200).send("EVENT_RECEIVED");
+  } else {
+    return res.status(404).send("Not Found");
+  }
 });
 
 // Mount the routes at respective BASE paths
