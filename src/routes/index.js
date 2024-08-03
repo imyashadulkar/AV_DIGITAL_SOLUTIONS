@@ -15,38 +15,51 @@ const router = express.Router();
  * @swagger
  * /webhook:
  *   get:
- *     summary: Ping the server to check the status
- *     description: Ping the server to check if it is running.
+ *     summary: Verify the webhook
+ *     description: Verify the webhook with Facebook.
  *     tags:
- *       - Server Status
+ *       - Webhook Verification
+ *     parameters:
+ *       - name: hub.mode
+ *         in: query
+ *         required: true
+ *         description: "Should be 'subscribe'"
+ *         schema:
+ *           type: string
+ *       - name: hub.verify_token
+ *         in: query
+ *         required: true
+ *         description: "The token you set in your Facebook app"
+ *         schema:
+ *           type: string
+ *       - name: hub.challenge
+ *         in: query
+ *         required: true
+ *         description: "The challenge string sent by Facebook"
+ *         schema:
+ *           type: string
  *     responses:
- *       200:
- *         description: Ping the server to check if it is running.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   description: Indicates if the request is success.
- *                   example: true
- *                 message:
- *                   type: string
- *                   description: A message indicating the server status.
- *                   example: "Server is running. Code deployed on 01-June-2024."
+ *       '200':
+ *         description: "Webhook verified successfully"
+ *       '403':
+ *         description: "Verification failed"
  */
-
 router.get(BASE_ROUTES.WEBHOOK_ROUTE, async (req, res) => {
   const challenge = req.query["hub.challenge"];
-  const verifyToken = req.query["hub.verify_token"]; // This token should match the one you set in your Facebook app
+  const verifyToken = req.query["hub.verify_token"];
+
   console.log("====================================");
-  console.log("challenge", challenge, verifyToken);
+  console.log("challenge:", challenge);
+  console.log("verifyToken:", verifyToken);
   console.log("====================================");
 
-  if (verifyToken === process.env.FACEBOOK_VERIFY_TOKEN || "meatyhamhock") {
+  // Check if the verify token matches
+  if (
+    verifyToken === process.env.FACEBOOK_VERIFY_TOKEN ||
+    verifyToken === "meatyhamhock"
+  ) {
     console.log("Webhook verified successfully.");
-    return res.status(200).json({ challenge });
+    return res.status(200).send(challenge); // Send the challenge back as plain text
   } else {
     console.error("Verification failed.");
     return res.status(403).send("Verification failed");
@@ -57,29 +70,16 @@ router.get(BASE_ROUTES.WEBHOOK_ROUTE, async (req, res) => {
  * @swagger
  * /webhook:
  *   post:
- *     summary: get the server to check the status
- *     description: Ping the server to check if it is running.
+ *     summary: Handle incoming lead data
+ *     description: Receive lead data from Facebook.
  *     tags:
- *       - get fb data Status
+ *       - Lead Data
  *     responses:
- *       200:
- *         description: Ping the server to check if it is running.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   description: Indicates if the request is success.
- *                   example: true
- *                 message:
- *                   type: string
- *                   description: A message indicating the server status.
- *                   example: "Server is running. Code deployed on 01-June-2024."
+ *       '200':
+ *         description: "Event received successfully"
+ *       '404':
+ *         description: "Not Found"
  */
-
-// This route handles incoming lead data from Facebook
 router.post(BASE_ROUTES.WEBHOOK_ROUTE, async (req, res) => {
   console.log("Received lead data:", req.body);
 
