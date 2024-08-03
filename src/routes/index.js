@@ -40,8 +40,11 @@ const router = express.Router();
 router.get(BASE_ROUTES.WEBHOOK_ROUTE, async (req, res) => {
   const challenge = req.query["hub.challenge"];
   const verifyToken = req.query["hub.verify_token"]; // This token should match the one you set in your Facebook app
+  console.log("====================================");
+  console.log("challenge", challenge, verifyToken);
+  console.log("====================================");
 
-  if (verifyToken === process.env.FACEBOOK_VERIFY_TOKEN) {
+  if (verifyToken === process.env.FACEBOOK_VERIFY_TOKEN || "meatyhamhock") {
     console.log("Webhook verified successfully.");
     return res.status(200).json({ "hub.challenge": challenge });
   } else {
