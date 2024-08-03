@@ -36,33 +36,48 @@ const router = express.Router();
  *                   description: A message indicating the server status.
  *                   example: "Server is running. Code deployed on 01-June-2024."
  */
-// Ping route to check the server status
-// router.get(BASE_ROUTES.PING_ROUTE, async (req, res) => {
-//   console.log("not getting anything");
-//   const challenge = req.query["hub.challenge"];
-//   res.status(200).send(challenge);
-//   // res.status(200).json({
-//   success: true,
-//   message: CONST_STRINGS.SERVER_RUNNING_MESSAGE,
-// });
-// });
 
 router.get(BASE_ROUTES.WEBHOOK_ROUTE, async (req, res) => {
   const challenge = req.query["hub.challenge"];
   const verifyToken = req.query["hub.verify_token"]; // This token should match the one you set in your Facebook app
 
-  // Verify the token
   if (verifyToken === process.env.FACEBOOK_VERIFY_TOKEN) {
     console.log("Webhook verified successfully.");
-    return res.status(200).send(challenge);
+    return res.status(200).json({ "hub.challenge": challenge });
   } else {
     console.error("Verification failed.");
     return res.status(403).send("Verification failed");
   }
 });
 
+/**
+ * @swagger
+ * /webhooks:
+ *   post:
+ *     summary: get the server to check the status
+ *     description: Ping the server to check if it is running.
+ *     tags:
+ *       - get fb data Status
+ *     responses:
+ *       200:
+ *         description: Ping the server to check if it is running.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   description: Indicates if the request is success.
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   description: A message indicating the server status.
+ *                   example: "Server is running. Code deployed on 01-June-2024."
+ */
+
 // This route handles incoming lead data from Facebook
-router.post(BASE_ROUTES.PING_ROUTE, async (req, res) => {
+router.post(BASE_ROUTES.WEBHOOK_ROUTE, async (req, res) => {
   console.log("Received lead data:", req.body);
 
   // Check if the request contains leadgen data
