@@ -46,7 +46,7 @@ router.get(BASE_ROUTES.WEBHOOK_ROUTE, async (req, res) => {
 
   if (verifyToken === process.env.FACEBOOK_VERIFY_TOKEN || "meatyhamhock") {
     console.log("Webhook verified successfully.");
-    return res.status(200).json({ "hub.challenge": challenge });
+    return res.status(200).json({ challenge });
   } else {
     console.error("Verification failed.");
     return res.status(403).send("Verification failed");
