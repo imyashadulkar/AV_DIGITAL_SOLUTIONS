@@ -13,14 +13,25 @@ export const extractDataFromExcel = async (req, res, next) => {
   try {
     req.meta = { endpoint: "extractDataFromExcel" };
 
-    if (!req.files.excelFile) {
-      throw new Error("Missing required inputs");
+    if (!req.files || !req.files.excelFile) {
+      return res.status(400).json({
+        success: false,
+        error: "Missing required inputs. Please upload an Excel file.",
+      });
     }
 
     const filePath = req.files.excelFile.tempFilePath;
     console.log("File path:", filePath);
 
-    const { userId, organizationId, projectId } = req.body;
+    const { userId, organizationId } = req.body;
+    const { projectId } = req.params; // Get projectId from req.params
+
+    if (!projectId || !organizationId || !userId) {
+      return res.status(400).json({
+        success: false,
+        error: "Project ID, User ID, and Organization ID are required.",
+      });
+    }
 
     const workbook = xlsx.readFile(filePath);
     const sheetName = workbook.SheetNames[0];
@@ -30,55 +41,74 @@ export const extractDataFromExcel = async (req, res, next) => {
     console.log("Extracted JSON data:", jsonData);
 
     // Prepare JSON data for database insertion
-    const leadsToSave = jsonData.map((leadData) => {
-      return {
-        leadId: uuidv4(),
-        platform: leadData.platform,
-        phone_number: leadData.phone_number,
-        full_name: leadData.full_name,
-        campaign_name: leadData.campaign_name,
-        ad_name: leadData.ad_name,
-        timestamp: new Date(leadData.timestamp || Date.now()),
-        stage: leadData.stage || "Not qualified",
-        source: leadData.source || "Unpaid",
-        assigned_to: leadData.assigned_to || "Unassigned",
-        status: leadData.status || "Incomplete form",
-        remarks: leadData.remarks || "No Remarks",
-        isAssigned: leadData.isAssigned || false,
-        followUp: {
-          lastCallDate: null, // or use new Date() if you prefer
-          lastCallStatus: "Pending",
-          nextCallScheduled: null, // or use new Date() if you prefer
-        },
-      };
-    });
-
-    // Insert or update leads ensuring unique id (if you have an id field)
-    const bulkOptions = leadsToSave.map((lead) => ({
-      updateOne: {
-        filter: { phone_number: lead.phone_number }, // Use phone_number as the unique identifier
-        update: {
-          $set: lead, // Only update the fields specified in lead
-        },
-        upsert: true, // If lead.id doesn't exist, insert it
+    const leadsToSave = jsonData.map((leadData) => ({
+      leadId: uuidv4(),
+      platform: leadData.platform,
+      phone_number: leadData.phone_number,
+      full_name: leadData.full_name,
+      campaign_name: leadData.campaign_name,
+      ad_name: leadData.ad_name,
+      timestamp: new Date(leadData.timestamp || Date.now()),
+      stage: leadData.stage || "Not qualified",
+      source: leadData.source || "Unpaid",
+      assigned_to: leadData.assigned_to || "Unassigned",
+      status: leadData.status || "Incomplete form",
+      remarks: leadData.remarks || "No Remarks",
+      isAssigned: leadData.isAssigned || false,
+      followUp: {
+        lastCallDate: null,
+        lastCallStatus: "Pending",
+        nextCallScheduled: null,
       },
     }));
 
-    const result = await Lead.bulkWrite(bulkOptions, { ordered: false });
+    // Find the document by organizationId, if not found create a new document
+    let result = await Lead.findOne({
+      organizationId: organizationId,
+    });
+
+    if (!result) {
+      // Create a new document if it doesn't exist
+      result = new Lead({
+        organizationId,
+        userId,
+        projects: [{ projectId, leads: leadsToSave }],
+      });
+      await result.save();
+    } else {
+      // Document found, update or create the project
+      const project = result.projects.find((p) => p.projectId === projectId);
+
+      if (project) {
+        // Project found, update the leads
+        project.leads.push(...leadsToSave);
+      } else {
+        // Project not found, create a new project
+        result.projects.push({
+          projectId,
+          leads: leadsToSave,
+        });
+      }
+      await result.save();
+    }
 
     console.log("Insert result:", result);
 
-    req.data = {
-      statuscode: 200,
-      responseData: result,
-      responseMessage: "Data saved successfully",
-    };
-
-    next();
+    res.status(200).json({
+      success: true,
+      message: "Data saved successfully",
+      data: {
+        statuscode: 200,
+        responseData: result,
+        responseMessage: "Data saved successfully",
+      },
+    });
   } catch (err) {
     console.error("Error in extractDataFromExcel:", err);
-    req.err = err;
-    next(err);
+    res.status(500).json({
+      success: false,
+      error: "Internal server error.",
+    });
   }
 };
 
@@ -99,10 +129,22 @@ export const createLead = async (req, res, next) => {
       remarks,
       isAssigned,
       followUp,
+      organizationId,
     } = req.body;
 
+    const { projectId } = req.query; // Get organizationId and projectId from req.params
+
+    console.log("Organization ID:", organizationId);
+
+    if (!organizationId || !projectId) {
+      return res.status(400).json({
+        success: false,
+        error: "Organization ID and Project ID are required.",
+      });
+    }
+
     // Create a new lead object
-    const newLead = new Lead({
+    const newLead = {
       leadId: uuidv4(),
       platform,
       phone_number,
@@ -121,14 +163,27 @@ export const createLead = async (req, res, next) => {
         lastCallStatus: "Pending",
         nextCallScheduled: null,
       },
-    });
+    };
 
-    // Save the new lead
-    const savedLead = await newLead.save();
+    // Find the document by organizationId and projectId, then add the new lead
+    const result = await Lead.findOneAndUpdate(
+      { organizationId, "projects.projectId": projectId },
+      { $push: { "projects.$.leads": newLead } },
+      { new: true, upsert: true } // upsert option to create the document if it does not exist
+    );
+
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        error: "Failed to update or create the organization or project.",
+      });
+    }
+
+    console.log("Lead creation result:", result);
 
     req.data = {
       statuscode: 200,
-      responseData: savedLead,
+      responseData: result,
       responseMessage: "Lead created successfully",
     };
 
@@ -144,18 +199,37 @@ export const getAllLeads = async (req, res, next) => {
   try {
     req.data = { endpoint: "getAllLeads" };
 
-    // Extract query parameters
+    // Extract query parameters with default values
     const {
       startDate,
       endDate,
       status,
       source,
       assigned_to,
-      sortField,
-      sortOrder,
-      page,
-      limit,
+      sortField = "timestamp",
+      sortOrder = "desc",
+      page = 1,
+      limit = 10,
+      projectId, // Extract projectId
     } = req.query;
+
+    const { organizationId } = req.body;
+
+    // Validate page and limit
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+
+    if (isNaN(pageNumber) || pageNumber <= 0) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Invalid page number." });
+    }
+
+    if (isNaN(limitNumber) || limitNumber <= 0) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Invalid limit value." });
+    }
 
     // Build the filter object
     const filter = {};
@@ -175,20 +249,26 @@ export const getAllLeads = async (req, res, next) => {
       filter.isAssigned = false;
     }
 
-    // Build the sort object
-    const sort = {};
-    if (sortField && sortOrder) {
-      sort[sortField] = sortOrder === "desc" ? -1 : 1;
+    // Add organizationId and projectId filters if provided
+    if (organizationId) {
+      filter.organizationId = organizationId;
+    }
+    if (projectId) {
+      filter["projects.projectId"] = projectId;
     }
 
+    // Build the sort object
+    const sort = {};
+    sort[sortField] = sortOrder === "desc" ? -1 : 1;
+
     // Calculate pagination values
-    const skip = (page - 1) * limit;
+    const skip = (pageNumber - 1) * limitNumber;
 
     // Fetch filtered, sorted, and paginated leads
     const leads = await Lead.find(filter)
       .sort(sort)
       .skip(skip)
-      .limit(parseInt(limit));
+      .limit(limitNumber);
 
     // Fetch total number of leads matching the filter
     const totalLeads = await Lead.countDocuments(filter);
@@ -201,9 +281,14 @@ export const getAllLeads = async (req, res, next) => {
           ? await User.findOne({ userId: lead.assigned_to })
           : null;
 
+        // Ensure assignments is defined and is an array
+        const assignments = Array.isArray(lead.assignments)
+          ? lead.assignments
+          : [];
+
         // Fetch user details for each assignment's assigned_by
         const assignmentsWithNames = await Promise.all(
-          lead.assignments.map(async (assignment) => {
+          assignments.map(async (assignment) => {
             const assignedByUser = await User.findOne({
               userId: assignment.assigned_by,
             });
@@ -237,8 +322,8 @@ export const getAllLeads = async (req, res, next) => {
       responseData: {
         leads: leadsWithDetails,
         totalLeads,
-        totalPages: Math.ceil(totalLeads / limit),
-        currentPage: parseInt(page),
+        totalPages: Math.ceil(totalLeads / limitNumber),
+        currentPage: pageNumber,
       },
       responseMessage: CONST_STRINGS.LEAD_RETRIEVED_SUCCESS,
     };
@@ -253,27 +338,44 @@ export const getLeadById = async (req, res, next) => {
   try {
     req.data = { endpoint: "getLeadById" };
 
+    const { organizationId, projectId } = req.query;
     const { leadId } = req.params;
 
-    if (!leadId) {
+    if (!organizationId || !projectId || !leadId) {
       throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS);
     }
 
-    // Fetch the lead
-    const lead = await Lead.findOne({ leadId });
+    // Find the lead directly by querying within the project and organization
+    const lead = await Lead.findOne(
+      {
+        organizationId,
+        "projects.projectId": projectId,
+        "projects.leads.leadId": leadId,
+      },
+      {
+        "projects.$": 1, // Only return the project containing the lead
+      }
+    );
 
-    if (!lead) {
+    if (!lead || lead.projects.length === 0) {
+      throw new Error(CONST_STRINGS.LEAD_NOT_FOUND);
+    }
+
+    const project = lead.projects[0];
+    const foundLead = project.leads.find((l) => l.leadId === leadId);
+
+    if (!foundLead) {
       throw new Error(CONST_STRINGS.LEAD_NOT_FOUND);
     }
 
     // Fetch user details for assigned_to
-    const assignedToUser = lead.assigned_to
-      ? await User.findOne({ userId: lead.assigned_to })
+    const assignedToUser = foundLead.assigned_to
+      ? await User.findOne({ userId: foundLead.assigned_to })
       : null;
 
     // Fetch user details for each assignment's assigned_by
     const assignmentsWithNames = await Promise.all(
-      lead.assignments.map(async (assignment) => {
+      foundLead.assignments.map(async (assignment) => {
         const assignedByUser = await User.findOne({
           userId: assignment.assigned_by,
         });
@@ -290,7 +392,7 @@ export const getLeadById = async (req, res, next) => {
     );
 
     const leadWithDetails = {
-      ...lead.toObject(),
+      ...foundLead.toObject(),
       assigned_to_name: assignedToUser ? assignedToUser.userName : "Unassigned",
       assigned_to_full_name: assignedToUser
         ? assignedToUser.full_name
@@ -314,18 +416,37 @@ export const leadFollowUp = async (req, res, next) => {
   try {
     req.data = { endpoint: "leadFollowUp" };
 
-    const { leadId } = req.params;
-    const { lastCallDate, lastCallStatus, nextCallScheduled } = req.body;
+    const { projectId, leadId } = req.params;
+    const { organizationId, lastCallDate, lastCallStatus, nextCallScheduled } =
+      req.body;
 
     // Validate input
-    if (!leadId || !lastCallDate || !lastCallStatus || !nextCallScheduled) {
+    if (
+      !organizationId ||
+      !projectId ||
+      !leadId ||
+      !lastCallDate ||
+      !lastCallStatus ||
+      !nextCallScheduled
+    ) {
       throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS);
     }
 
-    // Fetch the lead
-    const lead = await Lead.findOne({ leadId });
+    // Fetch the project and find the lead within the project
+    const project = await Lead.findOne({
+      organizationId,
+      "projects.projectId": projectId,
+    });
 
-    if (!lead) {
+    if (!project) {
+      throw new Error(CONST_STRINGS.PROJECT_NOT_FOUND);
+    }
+
+    const leadIndex = project.projects[0].leads.findIndex(
+      (l) => l.leadId === leadId
+    );
+
+    if (leadIndex === -1) {
       throw new Error(CONST_STRINGS.LEAD_NOT_FOUND);
     }
 
@@ -336,28 +457,43 @@ export const leadFollowUp = async (req, res, next) => {
     };
 
     // Update the lead with follow-up details
-    const updatedLead = await Lead.findOneAndUpdate(
-      { leadId },
-      {
-        $set: {
-          "followUp.lastCallDate": new Date(lastCallDate),
-          "followUp.lastCallStatus": lastCallStatus,
-          "followUp.nextCallScheduled": new Date(nextCallScheduled),
-        },
-        $push: {
-          followUpHistory: followUpHistoryEntry,
-        },
-      },
-      { new: true } // Return the updated document
+    project.projects[0].leads[leadIndex].followUp = {
+      lastCallDate: new Date(lastCallDate),
+      lastCallStatus,
+      nextCallScheduled: new Date(nextCallScheduled),
+    };
+
+    project.projects[0].leads[leadIndex].followUpHistory.push(
+      followUpHistoryEntry
     );
 
-    if (!updatedLead) {
+    const updatedProject = await Lead.findOneAndUpdate(
+      {
+        organizationId,
+        "projects.projectId": projectId,
+      },
+      {
+        $set: {
+          "projects.$.leads.$[lead].followUp":
+            project.projects[0].leads[leadIndex].followUp,
+        },
+        $push: {
+          "projects.$.leads.$[lead].followUpHistory": followUpHistoryEntry,
+        },
+      },
+      {
+        arrayFilters: [{ "lead.leadId": leadId }],
+        new: true,
+      }
+    );
+
+    if (!updatedProject) {
       throw new Error(CONST_STRINGS.LEAD_UPDATE_FAILED);
     }
 
     req.data = {
       statuscode: 200,
-      responseData: updatedLead,
+      responseData: updatedProject.projects[0].leads[leadIndex],
       responseMessage: CONST_STRINGS.LEAD_UPDATED_SUCCESS,
     };
     next();
@@ -371,8 +507,8 @@ export const updateLeadStatus = async (req, res, next) => {
   try {
     req.meta = { endpoint: "updateLeadStatus" };
 
-    const { leadId, assignedTo, stage, lastCallRemarks, assignedBy, userId } =
-      req.body;
+    const { projectId, leadId } = req.params;
+    const { stage, lastCallRemarks, assignedTo, assignedBy } = req.body;
 
     if (!leadId) {
       throw new Error(CONST_STRINGS.MISSING_LEAD_ID);
@@ -381,46 +517,47 @@ export const updateLeadStatus = async (req, res, next) => {
     // Prepare update fields
     const updateFields = {};
     if (stage) {
-      updateFields.stage = stage;
+      updateFields["projects.$[project].leads.$[lead].stage"] = stage;
     }
     if (lastCallRemarks) {
-      updateFields.lastCallRemarks = lastCallRemarks;
+      updateFields["projects.$[project].leads.$[lead].remarks"] =
+        lastCallRemarks;
     }
 
-    if (assignedTo) {
+    const arrayFilters = [
+      { "project.projectId": projectId },
+      { "lead.leadId": leadId },
+    ];
+
+    if (assignedTo && assignedBy) {
       // Prepare assignment data
       const assignmentData = {
-        assigned_by: assignedBy || userId,
+        assigned_by: assignedBy,
         assigned_to: assignedTo,
         assigned_date: new Date(),
       };
 
-      // Update or add assignment
-      updateFields["assignments.$[elem]"] = assignmentData;
-      updateFields.assigned_to = assignedTo;
-      updateFields.isAssigned = true;
-
-      // Ensure correct array filter
-      await Lead.findOneAndUpdate(
-        { leadId },
-        { $set: updateFields },
-        {
-          arrayFilters: [{ "elem.assigned_to": assignedTo }],
-          new: true,
-          upsert: false,
-        }
-      );
-    } else {
-      // Update document without modifying assignments
-      await Lead.findOneAndUpdate(
-        { leadId },
-        { $set: updateFields },
-        { new: true }
-      );
+      // Add assignment data to assignments array
+      updateFields["projects.$[project].leads.$[lead].assignments"] =
+        assignmentData;
+      updateFields["projects.$[project].leads.$[lead].assigned_to"] =
+        assignedTo;
+      updateFields["projects.$[project].leads.$[lead].isAssigned"] = true;
     }
 
-    // Fetch the updated lead
-    const updatedLead = await Lead.findOne({ leadId });
+    // Update the document
+    const updatedLead = await Lead.findOneAndUpdate(
+      { "projects.projectId": projectId, "projects.leads.leadId": leadId },
+      { $set: updateFields },
+      {
+        arrayFilters: arrayFilters,
+        new: true,
+      }
+    );
+
+    if (!updatedLead) {
+      throw new Error(CONST_STRINGS.LEAD_NOT_FOUND);
+    }
 
     const responseMessage = CONST_STRINGS.LEAD_UPDATED_SUCCESSFULLY;
     const responseData = updatedLead;
@@ -441,16 +578,21 @@ export const deleteLead = async (req, res, next) => {
   try {
     req.meta = { endpoint: "deleteLead" };
 
-    const { leadId } = req.body;
+    const { projectId, leadId } = req.params; // Changed from req.body to req.params
+
+    console.log(req.params);
 
     if (!leadId) {
       throw new Error(CONST_STRINGS.MISSING_LEAD_ID);
     }
 
-    // Find and delete the lead
-    const result = await Lead.findOneAndDelete({ leadId });
+    // Find the project and update by pulling the specific leadId from the leads array
+    const updateResult = await Lead.updateOne(
+      { "projects.projectId": projectId, "projects.leads.leadId": leadId },
+      { $pull: { "projects.$.leads": { leadId } } }
+    );
 
-    if (!result) {
+    if (updateResult.modifiedCount === 0) {
       throw new Error(CONST_STRINGS.LEAD_NOT_FOUND);
     }
 
@@ -619,14 +761,16 @@ export const assignLead = async (req, res, next) => {
 
     const { assignedTo, remarks, leadId } = req.query;
     const { userId } = req.body;
-    console.log(req.body);
 
     if (!leadId || !assignedTo) {
-      throw new Error("Missing required inputs");
+      throw new Error(CONST_STRINGS.MISSING_REQUIRED_INPUTS);
     }
 
-    // Fetch the lead
-    const lead = await Lead.findOne({ leadId });
+    // Fetch the lead from the nested structure
+    const lead = await Lead.findOne({
+      "projects.leads.leadId": leadId,
+    });
+
     if (!lead) {
       throw new Error(CONST_STRINGS.LEAD_NOT_FOUND);
     }
@@ -637,6 +781,23 @@ export const assignLead = async (req, res, next) => {
       throw new Error(CONST_STRINGS.USER_NOT_FOUND);
     }
 
+    // Find the project and lead to update
+    const projectIndex = lead.projects.findIndex((project) =>
+      project.leads.some((leadItem) => leadItem.leadId === leadId)
+    );
+
+    if (projectIndex === -1) {
+      throw new Error(CONST_STRINGS.LEAD_NOT_FOUND);
+    }
+
+    const leadIndex = lead.projects[projectIndex].leads.findIndex(
+      (leadItem) => leadItem.leadId === leadId
+    );
+
+    if (leadIndex === -1) {
+      throw new Error(CONST_STRINGS.LEAD_NOT_FOUND);
+    }
+
     // Create a new assignment
     const newAssignment = {
       assigned_by: userId,
@@ -644,29 +805,36 @@ export const assignLead = async (req, res, next) => {
       assigned_date: new Date(),
     };
 
-    // Create an assignment history entry
-    const assignmentHistoryEntry = {
-      assigned_by: userId,
-      assigned_to: assignedTo,
-      assigned_date: new Date(),
-    };
+    // Push existing assignments into the assignmentHistory and clear assignments
+    const existingLead = lead.projects[projectIndex].leads[leadIndex];
+    const assignmentHistoryEntry = existingLead.assignments.map(
+      (assignment) => ({
+        ...assignment,
+        assigned_date: new Date(), // Add current date to all entries
+      })
+    );
 
-    // Update the lead with the new assignment and history
-    lead.assignments.push(newAssignment);
-    lead.assigned_to = assignedTo;
-    lead.isAssigned = true;
-    lead.remarks = remarks || lead.remarks;
+    lead.projects[projectIndex].leads[leadIndex].assignmentHistory = [
+      ...assignmentHistoryEntry,
+      newAssignment,
+    ];
 
-    // Add to assignment history
-    lead.assignmentHistory.push(assignmentHistoryEntry);
+    lead.projects[projectIndex].leads[leadIndex].assignments = [];
+    lead.projects[projectIndex].leads[leadIndex].assignments.push(
+      newAssignment
+    );
+    lead.projects[projectIndex].leads[leadIndex].assigned_to = assignedTo;
+    lead.projects[projectIndex].leads[leadIndex].isAssigned = true;
+    lead.projects[projectIndex].leads[leadIndex].remarks =
+      remarks || lead.projects[projectIndex].leads[leadIndex].remarks;
 
     // Save the updated lead
     await lead.save();
 
     req.data = {
       statuscode: 200,
-      responseData: lead,
       responseMessage: CONST_STRINGS.LEAD_ASSIGNED_SUCCESS,
+      responseData: lead,
     };
     next();
   } catch (err) {

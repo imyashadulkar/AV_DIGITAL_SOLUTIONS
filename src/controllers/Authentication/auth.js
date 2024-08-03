@@ -346,6 +346,7 @@ export const loginWithEmailPassword = async (req, res, next) => {
       organizationId,
       userRole,
       projectId,
+      projects,
       isAdmin: false,
       isAuthUser: true,
     });

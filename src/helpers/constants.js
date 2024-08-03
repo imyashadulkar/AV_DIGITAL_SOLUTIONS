@@ -168,8 +168,8 @@ export const AUTH_ROUTES = {
 };
 
 export const EXCEL_ROUTES = {
-  GET_DATA_FROM_EXCEL: "/get-data-from-excel",
-  CREATE_SINGLE_LEAD: "/create-single-lead",
+  GET_DATA_FROM_EXCEL: "/get-data-from-excel/:projectId",
+  CREATE_SINGLE_LEAD: "/create-single-lead/",
 };
 
 export const LEADS_ROUTES = {
@@ -177,9 +177,9 @@ export const LEADS_ROUTES = {
   RETRIEVE_ALL_LEADS: "/retrieve-all-leads",
   GET_CHARTS_FOR_LEADS: "/get-charts-for-leads",
   ASSIGN_LEAD: "/assign-lead",
-  LEAD_FOLLOW_UP: "/:leadId/follow-up",
-  UPDATE_LEAD_STATUS_BY_LEAD_ID: "/update-lead-status-by-leadId",
-  DELETE_LEAD_BY_LEAD_ID: "/delete-lead-by-leadId",
+  LEAD_FOLLOW_UP: "/:projectId/:leadId/follow-up",
+  UPDATE_LEAD_STATUS_BY_LEAD_ID: "/:projectId/:leadId/update-lead-status",
+  DELETE_LEAD_BY_LEAD_ID: "/delete-lead-by-leadId/:projectId/:leadId",
 };
 
 export const GOOGLE_SHEETS_API = {

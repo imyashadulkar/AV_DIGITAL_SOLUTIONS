@@ -25,12 +25,19 @@ const router = express.Router();
 
 /**
  * @swagger
- * /crm/get-data-from-excel:
+ * /crm/get-data-from-excel/{projectId}:
  *   post:
  *     summary: Extract data from Excel file and save to database
- *     description: Extracts data from an uploaded Excel file, processes it, and saves it to the database.
+ *     description: Extracts data from an uploaded Excel file, processes it, and saves it to the database under the specified project.
  *     tags:
  *       - Data Extraction
+ *     parameters:
+ *       - in: path
+ *         name: projectId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the project where the leads should be saved.
  *     requestBody:
  *       required: true
  *       content:
@@ -42,6 +49,9 @@ const router = express.Router();
  *                 type: string
  *                 format: binary
  *                 description: The Excel file to extract data from.
+ *               organizationId:
+ *                 type: string
+ *                 description: The ID of the organization to which the leads belong.
  *     responses:
  *       200:
  *         description: Data extracted and saved successfully
@@ -72,7 +82,7 @@ const router = express.Router();
  *                       example: "Data saved successfully."
  *                       description: A message indicating the outcome of the operation.
  *       400:
- *         description: Missing required inputs (Excel file)
+ *         description: Missing required inputs (Excel file, userId, or organizationId)
  *         content:
  *           application/json:
  *             schema:
@@ -83,7 +93,7 @@ const router = express.Router();
  *                   example: false
  *                 error:
  *                   type: string
- *                   example: "Missing required inputs. Please upload an Excel file."
+ *                   example: "Missing required inputs. Please upload an Excel file and provide userId and organizationId."
  *       500:
  *         description: Internal server error
  *         content:
@@ -111,9 +121,17 @@ router.post(
  * /crm/create-single-lead:
  *   post:
  *     summary: Create a new lead
- *     description: Creates a new lead with the provided details and saves it to the database.
+ *     description: Creates a new lead with the provided details and saves it to the database, associating it with a specific project in a given organization.
  *     tags:
  *       - Leads
+ *     parameters:
+ *       - in: query
+ *         name: projectId
+ *         required: true
+ *         description: The ID of the project where the lead should be added.
+ *         schema:
+ *           type: string
+ *           example: "abcdef1234567890"
  *     requestBody:
  *       required: true
  *       content:
@@ -326,7 +344,7 @@ router.post(
  *         schema:
  *           type: string
  *         description: Assignment status of the lead.
- *         example: "assigned or Unassigned or empty"
+ *         example: "assigned, unassigned, or empty"
  *       - in: query
  *         name: sortField
  *         schema:
@@ -352,6 +370,12 @@ router.post(
  *           type: integer
  *         description: Number of leads per page.
  *         example: 10
+ *       - in: query
+ *         name: projectId
+ *         schema:
+ *           type: string
+ *         description: projectId.
+ *         example: 68b82a5f-12b7-4ab8-9ff2-77a688066180
  *     responses:
  *       200:
  *         description: Leads retrieved successfully
@@ -403,9 +427,9 @@ router.post(
  *                             example: "2024-05-22T09:41:27.000Z"
  *                           stage:
  *                             type: string
- *                             enum: ["qualified", "Not qualified"]
+ *                             enum: ["qualified", "not qualified"]
  *                             description: Stage of the lead.
- *                             example: "Not qualified"
+ *                             example: "not qualified"
  *                           source:
  *                             type: string
  *                             enum: ["paid", "unpaid"]
@@ -413,14 +437,14 @@ router.post(
  *                             example: "paid"
  *                           assigned_to:
  *                             type: string
- *                             enum: ["Unassigned", "Assigned"]
+ *                             enum: ["unassigned", "assigned"]
  *                             description: Assignment status of the lead.
- *                             example: "Unassigned"
+ *                             example: "unassigned"
  *                           status:
  *                             type: string
- *                             enum: ["completed form", "Incomplete form"]
+ *                             enum: ["completed form", "incomplete form"]
  *                             description: Status of the lead.
- *                             example: "Incomplete form"
+ *                             example: "incomplete form"
  *                     totalLeads:
  *                       type: integer
  *                       description: Total number of leads matching the filter criteria.
@@ -460,7 +484,7 @@ router.get(
  * /crm/get-lead-by-leadId/{leadId}:
  *   get:
  *     summary: Get lead by ID
- *     description: Retrieve detailed information about a lead by its ID.
+ *     description: Retrieve detailed information about a lead by its ID within a specific project and organization.
  *     tags:
  *       - Leads
  *     security:
@@ -473,6 +497,20 @@ router.get(
  *         required: true
  *         description: ID of the lead to retrieve.
  *         example: "ebf0d1f2-3d77-42dd-a6c4-fa370e03df76"
+ *       - in: query
+ *         name: organizationId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the organization containing the lead.
+ *         example: "b06fd574-ad74-4c70-b098-2f0f186483e2"
+ *       - in: query
+ *         name: projectId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the project containing the lead.
+ *         example: "68b82a5f-12b7-4ab8-9ff2-77a688066180"
  *     responses:
  *       200:
  *         description: Lead details retrieved successfully
@@ -488,22 +526,64 @@ router.get(
  *                   type: object
  *                   description: Lead object.
  *                   properties:
- *                     _id:
+ *                     leadId:
  *                       type: string
  *                       description: Unique identifier of the lead.
- *                       example: "668647ead8f37a9c6caba9e1"
+ *                       example: "ebf0d1f2-3d77-42dd-a6c4-fa370e03df76"
  *                     phone_number:
  *                       type: string
  *                       description: Phone number of the lead.
- *                       example: "p:+919353110500"
+ *                       example: "+919353110500"
  *                     ad_name:
  *                       type: string
  *                       description: Name of the ad related to the lead.
  *                       example: "New Leads ad"
  *                     assigned_to:
  *                       type: string
+ *                       description: ID of the user to whom the lead is assigned.
+ *                       example: "user123"
+ *                     assigned_to_name:
+ *                       type: string
  *                       description: Full name of the user to whom the lead is assigned.
  *                       example: "John Doe"
+ *                     followUp:
+ *                       type: object
+ *                       description: Follow-up details for the lead.
+ *                       properties:
+ *                         lastCallDate:
+ *                           type: string
+ *                           format: date-time
+ *                           description: Date of the last call.
+ *                           example: "2024-07-04T07:08:45.627Z"
+ *                         lastCallStatus:
+ *                           type: string
+ *                           description: Status of the last call.
+ *                           example: "Completed"
+ *                         nextCallScheduled:
+ *                           type: string
+ *                           format: date-time
+ *                           description: Date when the next call is scheduled.
+ *                           example: "2024-07-10T07:08:45.627Z"
+ *                     followUpHistory:
+ *                       type: array
+ *                       description: Array of follow-up history entries.
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           lastCallDate:
+ *                             type: string
+ *                             format: date-time
+ *                             description: Date of the last call.
+ *                             example: "2024-07-04T07:08:45.627Z"
+ *                           lastCallStatus:
+ *                             type: string
+ *                             description: Status of the last call.
+ *                             example: "Completed"
+ *                           nextCallScheduled:
+ *                             type: string
+ *                             format: date-time
+ *                             description: Date when the next call is scheduled.
+ *                             example: "2024-07-10T07:08:45.627Z"
  *                     assignments:
  *                       type: array
  *                       description: Array of assignment objects.
@@ -512,14 +592,15 @@ router.get(
  *                         properties:
  *                           assigned_by:
  *                             type: string
+ *                             description: ID of the user who assigned the lead.
+ *                             example: "user456"
+ *                           assigned_by_name:
+ *                             type: string
  *                             description: Full name of the user who assigned the lead.
  *                             example: "Jane Smith"
- *                           assigned_to:
- *                             type: string
- *                             description: Full name of the user to whom the lead is assigned.
- *                             example: "John Doe"
  *                           assigned_date:
  *                             type: string
+ *                             format: date-time
  *                             description: Date of assignment.
  *                             example: "2024-07-04T07:08:45.627Z"
  *       404:
@@ -546,7 +627,7 @@ router.get(
 
 /**
  * @swagger
- * /crm/update-lead-status-by-leadId:
+ * /crm/{projectId}/{leadId}/update-lead-status:
  *   put:
  *     summary: Update Lead Status
  *     description: Updates the status of a lead, including assignment details.
@@ -554,6 +635,21 @@ router.get(
  *       - Leads
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: projectId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the project containing the lead.
+ *         example: "68b82a5f-12b7-4ab8-9ff2-77a688066180"
+ *       - in: path
+ *         name: leadId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the lead to update.
+ *         example: "ebf0d1f2-3d77-42dd-a6c4-fa370e03df76"
  *     requestBody:
  *       description: Details to update the lead status.
  *       content:
@@ -561,10 +657,6 @@ router.get(
  *           schema:
  *             type: object
  *             properties:
- *               leadId:
- *                 type: string
- *                 description: Unique identifier of the lead.
- *                 example: "88f51423-6bbb-431b-90f5-fdab388032bd"
  *               assignedTo:
  *                 type: string
  *                 description: User ID to whom the lead is assigned.
@@ -581,8 +673,10 @@ router.get(
  *                 type: string
  *                 description: User ID of the person assigning the lead.
  *                 example: "ecd1f041-742e-446a-8617-55060cef2545"
- *             required:
- *               - leadId
+ *               userId:
+ *                 type: string
+ *                 description: User ID of the current user.
+ *                 example: "5f4e49f4-7a1d-4a44-8d32-4458e9a2e876"
  *     responses:
  *       200:
  *         description: Lead status updated successfully.
@@ -658,6 +752,8 @@ router.get(
  *                 error:
  *                   type: string
  *                   example: "Lead not found."
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 
 router.put(
@@ -669,27 +765,29 @@ router.put(
 
 /**
  * @swagger
- * /crm/delete-lead-by-leadId:
+ * /crm/delete-lead-by-leadId/{projectId}/{leadId}:
  *   delete:
  *     summary: Delete Lead
- *     description: Deletes a lead by its ID.
+ *     description: Deletes a lead by its ID within a specific project.
  *     tags:
  *       - Leads
  *     security:
  *       - bearerAuth: []
- *     requestBody:
- *       description: Lead ID to be deleted.
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               leadId:
- *                 type: string
- *                 description: Unique identifier of the lead to be deleted.
- *                 example: "88f51423-6bbb-431b-90f5-fdab388032bd"
- *             required:
- *               - leadId
+ *     parameters:
+ *       - name: projectId
+ *         in: path
+ *         required: true
+ *         description: Unique identifier of the project containing the lead.
+ *         schema:
+ *           type: string
+ *           example: "68b82a5f-12b7-4ab8-9ff2-77a688066180"
+ *       - name: leadId
+ *         in: path
+ *         required: true
+ *         description: Unique identifier of the lead to be deleted.
+ *         schema:
+ *           type: string
+ *           example: "88f51423-6bbb-431b-90f5-fdab388032bd"
  *     responses:
  *       200:
  *         description: Lead deleted successfully.
@@ -1193,19 +1291,27 @@ router.post(LEADS_ROUTES.ASSIGN_LEAD, assignLead, successResponse);
 
 /**
  * @swagger
- * /crm/{leadId}/follow-up:
+ * /crm/{projectId}/{leadId}/follow-up:
  *   put:
  *     summary: Update Lead Follow-Up Details
- *     description: Updates follow-up details for a specific lead.
+ *     description: Updates follow-up details for a specific lead within a specified project.
  *     tags:
  *       - Leads
  *     parameters:
+ *       - in: path
+ *         name: projectId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the project containing the lead.
+ *         example: "68b82a5f-12b7-4ab8-9ff2-77a688066180"
  *       - in: path
  *         name: leadId
  *         required: true
  *         schema:
  *           type: string
  *         description: The ID of the lead to update follow-up details for.
+ *         example: "ebf0d1f2-3d77-42dd-a6c4-fa370e03df76"
  *     requestBody:
  *       required: true
  *       content:
@@ -1228,6 +1334,10 @@ router.post(LEADS_ROUTES.ASSIGN_LEAD, assignLead, successResponse);
  *                 format: date-time
  *                 example: "2024-08-01T10:00:00Z"
  *                 description: The date when the next call is scheduled.
+ *               organizationId:
+ *                 type: string
+ *                 example: "b06fd574-ad74-4c70-b098-2f0f186483e2"
+ *                 description: The ID of the organization.
  *     responses:
  *       200:
  *         description: Follow-up details updated successfully
@@ -1245,7 +1355,7 @@ router.post(LEADS_ROUTES.ASSIGN_LEAD, assignLead, successResponse);
  *                   properties:
  *                     leadId:
  *                       type: string
- *                       example: "10188e23-2f53-48cc-bdd0-e2ecbc2506b6"
+ *                       example: "ebf0d1f2-3d77-42dd-a6c4-fa370e03df76"
  *                       description: The ID of the lead whose follow-up details were updated.
  *                     followUp:
  *                       type: object

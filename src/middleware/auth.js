@@ -14,7 +14,7 @@ export const verifyToken = async (req, res, next) => {
       isAdmin: validToken.data.isAdmin,
       userRole: validToken.data.userRole,
       organizationId: validToken.data.organizationId,
-      projectId: validToken.data.projectId,
+      projectId: validToken.data.projects,
     };
     req.data = {
       ...req.body,

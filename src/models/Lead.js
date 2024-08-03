@@ -1,51 +1,9 @@
 import mongoose from "mongoose";
 
-const assignmentSchema = new mongoose.Schema(
-  {
-    assigned_by: { type: String, required: true }, // User who assigned the lead
-    assigned_to: { type: String, required: true }, // User to whom the lead is assigned
-    assigned_date: { type: Date, default: Date.now }, // Date of assignment
-  },
-  { _id: false } // Do not create _id field for this subdocument
-);
-
-const followUpSchema = new mongoose.Schema(
-  {
-    lastCallDate: { type: Date }, // Date of the last call
-    lastCallStatus: {
-      type: String,
-      enum: ["Completed", "Pending", "Failed", "standBy"],
-    }, // Status of the last call
-    nextCallScheduled: { type: Date }, // Date when the next call is scheduled
-  },
-  { _id: false } // Do not create _id field for this subdocument
-);
-
-const assignmentHistorySchema = new mongoose.Schema(
-  {
-    assigned_by: { type: String }, // User who assigned the lead
-    assigned_to: { type: String }, // User to whom the lead is assigned
-    assigned_date: { type: Date, default: Date.now }, // Date of assignment
-  },
-  { _id: false }
-);
-
-// Define the schema for storing follow-up history
-const followUpHistorySchema = new mongoose.Schema(
-  {
-    lastCallDate: { type: Date }, // Date of the last call
-    lastCallStatus: { type: String, enum: ["Completed", "Pending", "Failed"] }, // Status of the last call
-    nextCallScheduled: { type: Date }, // Date when the next call is scheduled
-  },
-  { _id: false }
-);
-
+// Define the schema for a single lead
 const leadSchema = new mongoose.Schema(
   {
     leadId: { type: String, required: true, unique: true },
-    userId: { type: String, required: true, unique: true },
-    organizationId: { type: String, required: true, unique: true },
-    projectId: { type: String, required: true, unique: true },
     platform: { type: String, required: true },
     phone_number: { type: String, required: true },
     full_name: { type: String, required: true },
@@ -67,22 +25,67 @@ const leadSchema = new mongoose.Schema(
     source: {
       type: String,
       enum: ["Paid", "Unpaid"],
-      default: "paid",
+      default: "Paid",
     },
-    assigned_to: { type: String, default: "Unassigned" }, // Current assignment status
-    isAssigned: { type: Boolean, default: false }, // Is the lead assigned to someone
+    assigned_to: { type: String, default: "Unassigned" },
+    isAssigned: { type: Boolean, default: false },
     status: {
       type: String,
-      enum: ["completed form", "Incomplete form"],
+      enum: ["Completed form", "Incomplete form"],
       default: "Incomplete form",
     },
     remarks: { type: String },
-    assignments: [assignmentSchema], // Array of assignment objects
-    followUp: followUpSchema, // New followUp interface
-    assignmentHistory: [assignmentHistorySchema], // Array of assignment history objects
-    followUpHistory: [followUpHistorySchema], // Array of follow-up history objects
+    assignments: [
+      {
+        assigned_by: { type: String, required: true },
+        assigned_to: { type: String, required: true },
+        assigned_date: { type: Date, default: Date.now },
+      },
+    ],
+    followUp: {
+      lastCallDate: { type: Date },
+      lastCallStatus: {
+        type: String,
+        enum: ["Completed", "Pending", "Failed", "StandBy"],
+      },
+      nextCallScheduled: { type: Date },
+    },
+    assignmentHistory: [
+      {
+        assigned_by: { type: String },
+        assigned_to: { type: String },
+        assigned_date: { type: Date, default: Date.now },
+      },
+    ],
+    followUpHistory: [
+      {
+        lastCallDate: { type: Date },
+        lastCallStatus: {
+          type: String,
+          enum: ["Completed", "Pending", "Failed"],
+        },
+        nextCallScheduled: { type: Date },
+      },
+    ],
   },
-  { strict: true } // Only store specified fields
+  { _id: false } // No _id for this subdocument
 );
 
-export const Lead = mongoose.model("Lead", leadSchema);
+// Define the schema for a project
+const projectSchema = new mongoose.Schema(
+  {
+    projectId: { type: String, required: true },
+    leads: [leadSchema], // Array of leads
+  },
+  { _id: false } // No _id for this subdocument
+);
+
+// Define the schema for the main Lead model
+const leadModelSchema = new mongoose.Schema({
+  userId: { type: String, required: true },
+  organizationId: { type: String, required: true },
+  projects: [projectSchema], // Array of projects
+});
+
+// Export the model for the Lead
+export const Lead = mongoose.model("Lead", leadModelSchema);
