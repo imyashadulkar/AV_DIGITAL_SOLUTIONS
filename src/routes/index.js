@@ -38,8 +38,8 @@ const router = express.Router();
  */
 
 router.get(BASE_ROUTES.WEBHOOK_ROUTE, async (req, res) => {
-  const challenge = req.body["hub.challenge"];
-  const verifyToken = req.body["hub.verify_token"]; // This token should match the one you set in your Facebook app
+  const challenge = req.query["hub.challenge"];
+  const verifyToken = req.query["hub.verify_token"]; // This token should match the one you set in your Facebook app
   console.log("====================================");
   console.log("challenge", challenge, verifyToken);
   console.log("====================================");
@@ -55,7 +55,7 @@ router.get(BASE_ROUTES.WEBHOOK_ROUTE, async (req, res) => {
 
 /**
  * @swagger
- * /webhooks:
+ * /webhook:
  *   post:
  *     summary: get the server to check the status
  *     description: Ping the server to check if it is running.
