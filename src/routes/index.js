@@ -13,7 +13,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /webhooks:
+ * /webhook:
  *   get:
  *     summary: Ping the server to check the status
  *     description: Ping the server to check if it is running.

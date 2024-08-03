@@ -105,7 +105,7 @@ export const TYPES = {
 // Route URLs
 export const BASE_ROUTES = {
   PING_ROUTE: "/ping",
-  WEBHOOK_ROUTE: "/webhooks",
+  WEBHOOK_ROUTE: "/webhook",
   AUTH_ROUTES: "/auth",
   MODULE_ROUTES: "/module",
   ADMIN_ROUTES: "/admin",
