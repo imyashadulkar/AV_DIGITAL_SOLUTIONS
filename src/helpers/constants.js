@@ -166,6 +166,7 @@ export const AUTH_ROUTES = {
   UPDATE_USER_PERMISSION: "/update-sub-user-permission",
   CHANGE_SUB_USER_PASSWORD: "/change-sub-user-password",
   SUB_USER_LOGIN_WITH_EMAIL_PASSWORD: "/sub-user-login-with-email-password",
+  GET_USER_DETAILS_BY_ID: "/get-user-details-by-id/:userId",
 };
 
 export const EXCEL_ROUTES = {

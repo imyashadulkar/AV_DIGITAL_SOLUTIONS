@@ -1079,3 +1079,58 @@ export const getSubUserPermission = async (req, res, next) => {
     next(err);
   }
 };
+
+export const getUserDetailsById = async (req, res, next) => {
+  try {
+    req.data = { endpoint: "getUserDetailsById" };
+
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Missing required userId parameter." });
+    }
+
+    // Look for the user in the User collection
+    let user = await User.findOne({ userId });
+
+    // If not found, look for the user in the AuthSubUser collection
+    let isSubUser = false;
+    if (!user) {
+      user = await AuthSubUser.findOne({ userId });
+      isSubUser = !!user;
+    }
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: "User not found." });
+    }
+
+    console.log("Retrieved user data:", user);
+
+    // Prepare user details response
+    const userDetails = {
+      userId: user.userId,
+      userName: isSubUser ? user.subUsername : user.userName,
+      email: user.email,
+      role: user.role,
+      organizationId: user.organizationId || "",
+      created_at: user.createdAt,
+      updated_at: user.updatedAt,
+      isBlocked: user.isBlocked,
+      logins: user.logins,
+      previousEmails: user.previousEmails,
+      projects: user.projects,
+    };
+
+    req.data = {
+      statuscode: 200,
+      responseData: userDetails,
+      responseMessage: "User details retrieved successfully.",
+    };
+    next();
+  } catch (err) {
+    req.err = err;
+    next(err);
+  }
+};

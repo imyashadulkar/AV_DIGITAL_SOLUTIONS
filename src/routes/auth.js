@@ -11,6 +11,7 @@ import {
   getSubUser,
   getSubUserById,
   getSubUserPermission,
+  getUserDetailsById,
   loginWithEmailPassword,
   logoutUser,
   registerWithCode,
@@ -1141,6 +1142,98 @@ router.post(
 router.post(
   AUTH_ROUTES.SUB_USER_LOGIN_WITH_EMAIL_PASSWORD,
   subUserLoginWithEmailPassword,
+  successResponse
+);
+
+/**
+ * @swagger
+ * /auth/get-user-details-by-id/{userId}:
+ *   get:
+ *     summary: Get User Details by ID
+ *     description: Retrieves user details by ID. It searches in both User and AuthSubUser collections.
+ *     tags:
+ *       - User
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: "ecd1f041-742e-446a-8617-55060cef2545"
+ *           description: The ID of the user to retrieve.
+ *     responses:
+ *       200:
+ *         description: User details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statuscode:
+ *                   type: integer
+ *                   example: 200
+ *                   description: HTTP status code of the response.
+ *                 responseMessage:
+ *                   type: string
+ *                   example: "User details retrieved successfully."
+ *                   description: A message indicating the outcome of the operation.
+ *                 responseData:
+ *                   type: object
+ *                   properties:
+ *                     userId:
+ *                       type: string
+ *                       example: "ecd1f041-742e-446a-8617-55060cef2545"
+ *                       description: The ID of the user.
+ *                     organizationId:
+ *                       type: string
+ *                       example: "b06fd574-ad74-4c70-b098-2f0f186483e2"
+ *                       description: The ID of the organization the user belongs to.
+ *                     username:
+ *                       type: string
+ *                       example: "user123"
+ *                       description: The username of the user.
+ *                     email:
+ *                       type: string
+ *                       format: email
+ *                       example: "user@example.com"
+ *                       description: The email of the user.
+ *                     fullName:
+ *                       type: string
+ *                       example: "John Doe"
+ *                       description: The full name of the user.
+ *       400:
+ *         description: Bad request, missing required inputs
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Missing required inputs."
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "User not found."
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
+
+router.get(
+  AUTH_ROUTES.GET_USER_DETAILS_BY_ID,
+  getUserDetailsById,
   successResponse
 );
 
