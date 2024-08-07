@@ -1,5 +1,5 @@
 import xlsx from "xlsx";
-import { Lead, Contact, User } from "../models/index.js";
+import { Lead, Contact, User, AuthSubUser } from "../models/index.js";
 import { CONST_STRINGS } from "../helpers/constants.js";
 import { google } from "googleapis";
 import sendEmail from "../middleware/sendemail.js";
@@ -265,6 +265,10 @@ export const getAllLeads = async (req, res, next) => {
     const skip = (pageNumber - 1) * limitNumber;
 
     // Fetch filtered, sorted, and paginated leads
+    console.log("Filter applied:", filter);
+    console.log("Sort applied:", sort);
+    console.log("Skip:", skip, "Limit:", limitNumber);
+
     const leads = await Lead.find(filter)
       .sort(sort)
       .skip(skip)
@@ -273,49 +277,91 @@ export const getAllLeads = async (req, res, next) => {
     // Fetch total number of leads matching the filter
     const totalLeads = await Lead.countDocuments(filter);
 
+    console.log("Leads fetched:", leads.length);
+    console.log("Total leads matching filter:", totalLeads);
+
     // Fetch user details for assigned_to and each assignment's assigned_by
     const leadsWithDetails = await Promise.all(
       leads.map(async (lead) => {
-        // Fetch user details for assigned_to
-        const assignedToUser = lead.assigned_to
-          ? await User.findOne({ userId: lead.assigned_to })
-          : null;
+        console.log(`Processing lead ID: ${lead._id}`);
+
+        let assignedToUser = null;
+        let assignedToName = "Unassigned";
+        let assignedToFullName = "Unassigned";
+
+        if (lead.assigned_to) {
+          assignedToUser = await User.findOne({ userId: lead.assigned_to });
+          if (!assignedToUser) {
+            console.log(
+              `No user found in User collection for ID: ${lead.assigned_to}`
+            );
+            assignedToUser = await AuthSubUser.findOne({
+              userId: lead.assigned_to,
+            });
+            if (assignedToUser) {
+              console.log(
+                `User found in AuthSubUser collection for ID: ${lead.assigned_to}`
+              );
+              assignedToName = assignedToUser.subUsername || "Unassigned";
+              assignedToFullName = assignedToUser.subFullname || "Unassigned";
+            }
+          } else {
+            console.log(
+              `User found in User collection for ID: ${lead.assigned_to}`
+            );
+            assignedToName = assignedToUser.userName || "Unassigned";
+            assignedToFullName = assignedToUser.full_name || "Unassigned";
+          }
+        } else {
+          console.log(`Assigned_to field is null for lead ID: ${lead._id}`);
+        }
+
+        console.log(
+          `Lead ID: ${lead._id}, Assigned To User: ${assignedToUser}`
+        );
+        console.log(
+          `Assigned To Name: ${assignedToName}, Assigned To Full Name: ${assignedToFullName}`
+        );
 
         // Ensure assignments is defined and is an array
         const assignments = Array.isArray(lead.assignments)
           ? lead.assignments
           : [];
 
-        // Fetch user details for each assignment's assigned_by
+        // Fetch user details for each assignment's assigned_by from both User and AuthSubUser collections
         const assignmentsWithNames = await Promise.all(
           assignments.map(async (assignment) => {
-            const assignedByUser = await User.findOne({
+            let assignedByUser = await User.findOne({
               userId: assignment.assigned_by,
             });
+            let assignedByName = "Unknown";
+            if (!assignedByUser) {
+              assignedByUser = await AuthSubUser.findOne({
+                userId: assignment.assigned_by,
+              });
+              if (assignedByUser) {
+                assignedByName = assignedByUser.subUsername || "Unknown";
+              }
+            } else {
+              assignedByName = assignedByUser.userName || "Unknown";
+            }
             return {
               ...assignment.toObject(),
-              assigned_by_name: assignedByUser
-                ? assignedByUser.full_name
-                : "Unknown",
-              assigned_by_username: assignedByUser
-                ? assignedByUser.userName
-                : "Unknown",
+              assigned_by_name: assignedByName,
             };
           })
         );
 
         return {
           ...lead.toObject(),
-          assigned_to_name: assignedToUser
-            ? assignedToUser.userName
-            : "Unassigned",
-          assigned_to_full_name: assignedToUser
-            ? assignedToUser.full_name
-            : "Unassigned",
+          assigned_to_name: assignedToName,
+          assigned_to_full_name: assignedToFullName,
           assignments: assignmentsWithNames,
         };
       })
     );
+
+    console.log("Leads with details fetched:", leadsWithDetails.length);
 
     req.data = {
       statuscode: 200,
@@ -325,10 +371,11 @@ export const getAllLeads = async (req, res, next) => {
         totalPages: Math.ceil(totalLeads / limitNumber),
         currentPage: pageNumber,
       },
-      responseMessage: CONST_STRINGS.LEAD_RETRIEVED_SUCCESS,
+      responseMessage: "Leads retrieved successfully.",
     };
     next();
   } catch (err) {
+    console.error("Error in getAllLeads:", err);
     req.err = err;
     next(err);
   }

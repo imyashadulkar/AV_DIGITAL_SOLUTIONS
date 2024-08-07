@@ -63,6 +63,7 @@ export const addUserToProject = async (req, res, next) => {
     req.data = { endpoint: "addUserToProject" };
 
     const { organizationId, projectId, subuserId, userRole: role } = req.query;
+    const { userId } = req.body;
 
     const organization = await Organization.findOne({
       organizationId: organizationId,
@@ -74,7 +75,6 @@ export const addUserToProject = async (req, res, next) => {
     const project = organization.projects.find(
       (project) => project.projectId === projectId
     );
-    console.log(project);
     if (!project) {
       throw new Error(CONST_STRINGS.PROJECT_NOT_FOUND);
     }
@@ -82,28 +82,35 @@ export const addUserToProject = async (req, res, next) => {
     project.subUsers.push({ subuserId, role });
     const updatedOrganization = await organization.save();
 
-    // Also ensure that the subuser is created or updated in the AuthSubUser schema
+    // Fetch the existing AuthSubUser document to preserve shortCode
+    const existingAuthSubUser = await User.findOne({
+      userId,
+    });
+    const shortCode = existingAuthSubUser
+      ? existingAuthSubUser.shortCode
+      : null;
+
+    console.log("shortCode", shortCode);
+
     await Promise.all([
       AuthSubUser.findOneAndUpdate(
         { subUserId: subuserId },
         {
           userId: subuserId, // or other unique user identifier
           $addToSet: {
-            // Ensure projects are updated without duplicates
-            projects: { projectId, role },
+            projects: { projectId, role }, // Ensure projects are updated without duplicates
           },
         },
-        { upsert: true, new: true }
+        { upsert: true, new: true, setDefaultsOnInsert: true }
       ),
       User.findOneAndUpdate(
-        { userId: subuserId },
+        { userId },
         {
           $addToSet: {
-            // Ensure projects are updated without duplicates
-            projects: { projectId, role },
+            projects: { projectId, role }, // Ensure projects are updated without duplicates
           },
         },
-        { upsert: true, new: true }
+        { upsert: true, new: true, setDefaultsOnInsert: true }
       ),
     ]);
 
@@ -204,6 +211,8 @@ export const getAllUserInProject = async (req, res, next) => {
     if (!organization) {
       throw new Error(CONST_STRINGS.ORGANIZATION_NOT_FOUND);
     }
+
+    console.log(organization.projects);
 
     const project = organization.projects.find(
       (project) => project.projectId === projectId
