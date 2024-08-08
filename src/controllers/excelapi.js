@@ -132,8 +132,9 @@ export const createLead = async (req, res, next) => {
       organizationId,
     } = req.body;
 
-    const { projectId } = req.query; // Get organizationId and projectId from req.params
+    const { projectId } = req.query;
 
+    console.log("Project ID:", projectId);
     console.log("Organization ID:", organizationId);
 
     if (!organizationId || !projectId) {
@@ -165,17 +166,38 @@ export const createLead = async (req, res, next) => {
       },
     };
 
-    // Find the document by organizationId and projectId, then add the new lead
+    // First, check if the organization and project exist
+    const organization = await Lead.findOne({ organizationId });
+
+    if (!organization) {
+      return res.status(404).json({
+        success: false,
+        error: "Organization not found.",
+      });
+    }
+
+    const project = organization.projects.find(
+      (project) => project.projectId === projectId
+    );
+
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        error: "Project not found within the organization.",
+      });
+    }
+
+    // Now, add the lead to the project
     const result = await Lead.findOneAndUpdate(
       { organizationId, "projects.projectId": projectId },
       { $push: { "projects.$.leads": newLead } },
-      { new: true, upsert: true } // upsert option to create the document if it does not exist
+      { new: true }
     );
 
     if (!result) {
-      return res.status(404).json({
+      return res.status(500).json({
         success: false,
-        error: "Failed to update or create the organization or project.",
+        error: "Failed to update the organization or project.",
       });
     }
 

@@ -8,7 +8,11 @@ export const createProject = async (req, res, next) => {
 
     const { organizationId, projectName, userId } = req.body;
 
+    console.log("organizationId", req.body);
+    
+
     const organization = await Organization.findOne({ organizationId });
+    console.log(organization);
     if (!organization) {
       throw new Error(CONST_STRINGS.ORGANIZATION_NOT_FOUND);
     }
