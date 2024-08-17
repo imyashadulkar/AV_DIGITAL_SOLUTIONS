@@ -13,6 +13,8 @@ import {
   changeUserRoleInProject,
   createProject,
   getAllUserInProject,
+  getDashboardDetails,
+  getProjectDetails,
 } from "../controllers/organization/project.js";
 
 const router = express.Router();
@@ -618,6 +620,161 @@ router.get(
   MODULE_ROUTES.GET_ALL_USER_IN_PROJECT,
   verifyToken,
   getAllUserInProject,
+  successResponse
+);
+
+/**
+ * @swagger
+ * /module/get-project-details-by-projectId:
+ *   get:
+ *     summary: Get project details by project ID
+ *     description: Retrieves project details.
+ *     tags: [Organization]
+ *     parameters:
+ *       - in: query
+ *         name: organizationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the organization.
+ *       - in: query
+ *         name: projectId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the project.
+ *     responses:
+ *       200:
+ *         description: project retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statuscode:
+ *                   type: integer
+ *                   example: 200
+ *                 responseData:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/User'
+ *                   description: List of users in the project.
+ *                 responseMessage:
+ *                   type: string
+ *                   example: "Users in project retrieved successfully."
+ *       400:
+ *         description: Bad request, missing required inputs.
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
+
+router.get(
+  MODULE_ROUTES.GET_PROJECT_DETAILS_BY_ID,
+  verifyToken,
+  getProjectDetails,
+  successResponse
+);
+
+/**
+ * @swagger
+ * /module/get-dashboard-details:
+ *   get:
+ *     summary: Get Dashboard Details
+ *     description: Retrieves dashboard details, including leads, converted leads, qualified leads, not qualified leads, and team members.
+ *     tags: [Organization]
+ *     parameters:
+ *       - in: query
+ *         name: organizationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the organization.
+ *       - in: query
+ *         name: projectId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the project.
+ *       - in: query
+ *         name: fromDate
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: The start date for filtering leads data.
+ *       - in: query
+ *         name: toDate
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: The end date for filtering leads data.
+ *     responses:
+ *       200:
+ *         description: Dashboard details retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statuscode:
+ *                   type: integer
+ *                   example: 200
+ *                 responseData:
+ *                   type: object
+ *                   properties:
+ *                     leads:
+ *                       type: integer
+ *                       example: 25
+ *                     convertedLeads:
+ *                       type: integer
+ *                       example: 10
+ *                     qualifiedLeads:
+ *                       type: integer
+ *                       example: 15
+ *                     notQualifiedLeads:
+ *                       type: integer
+ *                       example: 5
+ *                     teamMembers:
+ *                       type: integer
+ *                       example: 8
+ *                 responseMessage:
+ *                   type: string
+ *                   example: "Dashboard details retrieved successfully."
+ *       400:
+ *         description: Bad request, missing required inputs.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statuscode:
+ *                   type: integer
+ *                   example: 400
+ *                 responseMessage:
+ *                   type: string
+ *                   example: "Missing required query parameters: organizationId, projectId."
+ *       404:
+ *         description: Not Found, when organization or project is not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statuscode:
+ *                   type: integer
+ *                   example: 404
+ *                 responseMessage:
+ *                   type: string
+ *                   example: "Organization not found."
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
+ */
+
+router.get(
+  MODULE_ROUTES.GET_DASHBOARD_DETAILS,
+  verifyToken,
+  getDashboardDetails,
   successResponse
 );
 

@@ -125,6 +125,8 @@ export const MODULE_ROUTES = {
   //project
   CREATE_PROJECT: "/create-project",
   GET_PROJECT: "/get-project",
+  GET_PROJECT_DETAILS_BY_ID: "/get-project-details-by-projectId",
+  GET_DASHBOARD_DETAILS: "/get-dashboard-details",
   ADD_USER_TO_PROJECT: "/add-user-to-project",
   CHANGE_USER_ROLE_IN_PROJECT: "/change-user-role-in-project",
   CHANGE_PROJECT_AND_ROLE: "/change-project-and-role",

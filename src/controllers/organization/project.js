@@ -1,4 +1,4 @@
-import { AuthSubUser, Organization, User } from "../../models/index.js";
+import { AuthSubUser, Lead, Organization, User } from "../../models/index.js";
 import { CONST_STRINGS } from "../../helpers/constants.js";
 import { v4 as uuidv4 } from "uuid";
 
@@ -9,7 +9,6 @@ export const createProject = async (req, res, next) => {
     const { organizationId, projectName, userId } = req.body;
 
     console.log("organizationId", req.body);
-    
 
     const organization = await Organization.findOne({ organizationId });
     console.log(organization);
@@ -236,6 +235,146 @@ export const getAllUserInProject = async (req, res, next) => {
     next();
   } catch (err) {
     console.error("Error in getAllUserInProject:", err);
+    req.err = err;
+    next(err);
+  }
+};
+
+export const getProjectDetails = async (req, res, next) => {
+  try {
+    req.data = { endpoint: "getProjectDetails" };
+
+    const { organizationId, projectId } = req.query;
+
+    const organization = await Organization.findOne({ organizationId });
+    if (!organization) {
+      throw new Error(CONST_STRINGS.ORGANIZATION_NOT_FOUND);
+    }
+
+    const project = organization.projects.find(
+      (project) => project.projectId === projectId
+    );
+    if (!project) {
+      throw new Error(CONST_STRINGS.PROJECT_NOT_FOUND);
+    }
+
+    req.data = {
+      statuscode: 200,
+      responseData: project,
+      responseMessage: CONST_STRINGS.DATA_FETCH_SUCCESS,
+    };
+
+    next();
+  } catch (err) {
+    console.error("Error in getProjectDetails:", err);
+    req.err = err;
+    next(err);
+  }
+};
+
+export const getDashboardDetails = async (req, res, next) => {
+  try {
+    req.data = { endpoint: "getDashboardDetails" };
+
+    const {
+      organizationId,
+      projectId,
+      fromDate: startDate,
+      toDate: endDate,
+    } = req.query;
+
+    // Build the date filter
+    const dateFilter = {};
+    if (startDate) dateFilter.$gte = new Date(startDate);
+    if (endDate) dateFilter.$lte = new Date(endDate);
+
+    // Find the organization
+    const organization = await Organization.findOne({ organizationId });
+    if (!organization) {
+      req.data = {
+        statuscode: 404,
+        responseMessage: CONST_STRINGS.ORGANIZATION_NOT_FOUND,
+      };
+      return next();
+    }
+
+    // Fetch all leads that belong to the given organization and project
+    const leads = await Lead.find({
+      organizationId: organizationId,
+      "projects.projectId": projectId,
+      ...(startDate || endDate ? { "projects.timestamp": dateFilter } : {}),
+    });
+
+    if (!leads || leads.length === 0) {
+      req.data = {
+        statuscode: 204,
+        responseMessage: "No leads data available for the specified project.",
+      };
+      return next();
+    }
+
+    // Aggregate counts based on lead status and stage
+    let leadsCount = 0;
+    let convertedLeadsCount = 0;
+    let qualifiedLeadsCount = 0;
+    let notQualifiedLeadsCount = 0;
+
+    // Initialize the graph data
+    const graphData = {};
+
+    leads.forEach((lead) => {
+      const project = lead.projects.find(
+        (project) => project.projectId === projectId
+      );
+      if (project) {
+        project.leads.forEach((leadDetail) => {
+          const leadDate = new Date(leadDetail.timestamp);
+          if (
+            (!startDate || leadDate >= new Date(startDate)) &&
+            (!endDate || leadDate <= new Date(endDate))
+          ) {
+            leadsCount++;
+            if (leadDetail.status === "Converted") convertedLeadsCount++;
+            if (leadDetail.stage === "Qualified") qualifiedLeadsCount++;
+            if (leadDetail.stage === "Not qualified") notQualifiedLeadsCount++;
+
+            // Process graph data using lastCallDate from followUp
+            const followUpDate = new Date(leadDetail.followUp?.lastCallDate);
+            if (followUpDate) {
+              const day = followUpDate.toISOString().split("T")[0]; // Extract the date (YYYY-MM-DD)
+              if (!graphData[day]) {
+                graphData[day] = 0;
+              }
+              graphData[day]++;
+            }
+          }
+        });
+      }
+    });
+
+    const teamMembersCount =
+      organization.projects.find((project) => project.projectId === projectId)
+        ?.subUsers.length || 0;
+
+    // Prepare the dashboard details
+    const dashboardDetails = {
+      leads: leadsCount,
+      convertedLeads: convertedLeadsCount,
+      qualifiedLeads: qualifiedLeadsCount,
+      notQualifiedLeads: notQualifiedLeadsCount,
+      teamMembers: teamMembersCount,
+      leadsContactedGraph: graphData, // Include the graph data here
+    };
+
+    req.data = {
+      statuscode: 200,
+      responseData: dashboardDetails,
+      responseMessage: CONST_STRINGS.DATA_FETCH_SUCCESS,
+    };
+
+    next();
+  } catch (err) {
+    console.error("Error in getDashboardDetails:", err);
     req.err = err;
     next(err);
   }
