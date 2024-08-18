@@ -21,13 +21,15 @@ async function fetchLeads() {
         const formId = form.id;
         const API_URL = `https://graph.facebook.com/v20.0/${formId}/leads?access_token=${ACCESS_TOKEN}`;
         let allLeads = [];
-    
+  
+        // Fetch initial leads data
         let response = await axios.get(API_URL);
         let leadsData = response.data.data;
         allLeads.push(...leadsData);
   
-        console.log('All Leads:', allLeads);
-    
+        console.log('Initial Leads Data:', leadsData);
+  
+        // Fetch all pages of leads
         while (response.data.paging && response.data.paging.next) {
           response = await axios.get(response.data.paging.next);
           leadsData = response.data.data;
@@ -54,7 +56,7 @@ async function fetchLeads() {
           });
         });
   
-        // Fetch campaign and ad names
+        // Collect campaign and ad IDs
         const campaignIds = new Set();
         const adIds = new Set();
   
@@ -63,8 +65,17 @@ async function fetchLeads() {
           if (lead.ad_id) adIds.add(lead.ad_id);
         });
   
-        const campaignPromises = Array.from(campaignIds).map(id => axios.get(`https://graph.facebook.com/v20.0/${id}?fields=name&access_token=${ACCESS_TOKEN}`));
-        const adPromises = Array.from(adIds).map(id => axios.get(`https://graph.facebook.com/v20.0/${id}?fields=name&access_token=${ACCESS_TOKEN}`));
+        console.log('Campaign IDs:', campaignIds);
+        console.log('Ad IDs:', adIds);
+  
+        // Fetch campaign and ad names
+        const campaignPromises = Array.from(campaignIds).map(id => 
+          axios.get(`https://graph.facebook.com/v20.0/${id}?fields=name&access_token=${ACCESS_TOKEN}`)
+        );
+  
+        const adPromises = Array.from(adIds).map(id => 
+          axios.get(`https://graph.facebook.com/v20.0/${id}?fields=name&access_token=${ACCESS_TOKEN}`)
+        );
   
         const [campaignResponses, adResponses] = await Promise.all([
           Promise.all(campaignPromises),
@@ -73,6 +84,9 @@ async function fetchLeads() {
   
         const campaignsMap = new Map(campaignResponses.map(response => [response.data.id, response.data.name]));
         const adsMap = new Map(adResponses.map(response => [response.data.id, response.data.name]));
+  
+        console.log('Campaigns Map:', campaignsMap);
+        console.log('Ads Map:', adsMap);
   
         // Prepare leads for database insertion, with a check for duplicates
         const newLeads = [];
@@ -124,7 +138,6 @@ async function fetchLeads() {
               userId: 'c60159d0-5a2b-43af-a71b-56e175ab205f', // Replace with actual userId
               projects: [{ projectId, leads: newLeads }],
             });
-            await result.save();
           } else {
             // Document found, update or create the project
             const project = result.projects.find(p => p.projectId === projectId);
@@ -139,9 +152,8 @@ async function fetchLeads() {
                 leads: newLeads,
               });
             }
-            await result.save();
           }
-  
+          await result.save(); // Save the document
           console.log('Leads saved to the database:', newLeads);
         }
       }
@@ -149,6 +161,7 @@ async function fetchLeads() {
       console.error('Error in fetchLeads:', error);
     }
   }
+  
 
 function startLeadScheduler() {
     // Schedule the task to run after 5 minutes
