@@ -12,6 +12,7 @@ import {
   changeProjectAndRole,
   changeUserRoleInProject,
   createProject,
+  getAllProjectsInOrganization,
   getAllUserInProject,
   getDashboardDetails,
   getProjectDetails,
@@ -677,6 +678,82 @@ router.get(
 
 /**
  * @swagger
+ * /module/get-projects-in-organization:
+ *   get:
+ *     summary: Get all projects in an organization
+ *     description: Fetches all projects associated with a given organization ID.
+ *     tags:
+ *       - Projects
+ *     parameters:
+ *       - in: query
+ *         name: organizationId
+ *         required: true
+ *         description: The ID of the organization to fetch projects from.
+ *         schema:
+ *           type: string
+ *           example: 733c2ee4-41a3-41c7-8fea-86c4e9ce1ed5
+ *     responses:
+ *       '200':
+ *         description: Successfully fetched all projects in the organization.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statuscode:
+ *                   type: integer
+ *                   example: 200
+ *                 responseData:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       projectId:
+ *                         type: string
+ *                         example: "733c2ee4-41a3-41c7-8fea-86c4e9ce1ed5"
+ *                       projectName:
+ *                         type: string
+ *                         example: "New CRM System"
+ *                 responseMessage:
+ *                   type: string
+ *                   example: "Data fetched successfully."
+ *       '404':
+ *         description: Organization not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statuscode:
+ *                   type: integer
+ *                   example: 404
+ *                 errorMessage:
+ *                   type: string
+ *                   example: "Organization not found."
+ *       '500':
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statuscode:
+ *                   type: integer
+ *                   example: 500
+ *                 errorMessage:
+ *                   type: string
+ *                   example: "Internal server error."
+ */
+
+router.get(
+  MODULE_ROUTES.GET_PROJECTS_IN_ORGANIZATION,
+  verifyToken,
+  getAllProjectsInOrganization,
+  successResponse
+);
+
+/**
+ * @swagger
  * /module/get-dashboard-details:
  *   get:
  *     summary: Get Dashboard Details
@@ -777,6 +854,10 @@ router.get(
   getDashboardDetails,
   successResponse
 );
+
+
+
+
 
 /**
  * @swagger

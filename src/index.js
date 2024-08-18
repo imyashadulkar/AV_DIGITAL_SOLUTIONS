@@ -8,11 +8,11 @@ import swaggerUi from "swagger-ui-express";
 import http from "http";
 import { WebSocketServer } from "ws";
 import { setupWebSocket } from "../src/helpers/utils/webSocket.js";
-
 import { swaggerDocs } from "./helpers/utils/swagger.js";
 // Import local modules
 import allRoutes from "./routes/index.js";
 import logger from "./helpers/logger.js";
+import {startLeadScheduler} from "./middleware/lead_scheduler.js"
 
 // Import Environment Variables
 import { ENV_VAR } from "./helpers/env.js";
@@ -101,5 +101,6 @@ if (!ENV_VAR.UNIT_TEST) {
 }
 
 setupWebSocket(wss);
+startLeadScheduler();
 
 export default app;

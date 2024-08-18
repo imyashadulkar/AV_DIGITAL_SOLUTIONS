@@ -8,6 +8,7 @@ import authRoutes from "./auth.js";
 import appRoutes from "./excel.js";
 import moduleRoutes from "./module.js";
 import chatRoutes from "./chat.js";
+import fetchLeadForms from "./fetch_leads.js";
 
 const router = express.Router();
 
@@ -66,6 +67,22 @@ router.get(BASE_ROUTES.WEBHOOK_ROUTE, async (req, res) => {
   }
 });
 
+// Receive Lead Data
+router.post('/webhook', (req, res) => {
+  const data = req.body;
+
+  if (data.object === 'page') {
+    data.entry.forEach(entry => {
+      const webhookEvent = entry.changes[0];
+      console.log('Webhook event:', webhookEvent);
+      // Process the lead data here
+    });
+    res.status(200).send('EVENT_RECEIVED');
+  } else {
+    res.sendStatus(404);
+  }
+});
+
 /**
  * @swagger
  * /webhook:
@@ -107,5 +124,6 @@ router.use(BASE_ROUTES.AUTH_ROUTES, authRoutes);
 router.use(BASE_ROUTES.APP_APIS, appRoutes);
 router.use(BASE_ROUTES.MODULE_ROUTES, moduleRoutes);
 router.use(BASE_ROUTES.CHAT_ROUTES, chatRoutes);
+router.use(BASE_ROUTES.FETCH_ROUTES, fetchLeadForms);
 
 export default router;

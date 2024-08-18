@@ -24,7 +24,7 @@ const leadSchema = new mongoose.Schema(
     },
     source: {
       type: String,
-      enum: ["Paid", "Unpaid"],
+      enum: ["Paid", "Unpaid","Facebook Ads"],
       default: "Paid",
     },
     assigned_to: { type: String, default: "Unassigned" },

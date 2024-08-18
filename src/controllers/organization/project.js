@@ -272,6 +272,33 @@ export const getProjectDetails = async (req, res, next) => {
   }
 };
 
+export const getAllProjectsInOrganization = async (req, res, next) => {
+  try {
+    req.data = { endpoint: "getAllProjectsInOrganization" };
+
+    const { organizationId } = req.query;
+
+    const organization = await Organization.findOne({ organizationId });
+    if (!organization) {
+      throw new Error(CONST_STRINGS.ORGANIZATION_NOT_FOUND);
+    }
+
+    const projects = organization.projects;
+
+    req.data = {
+      statuscode: 200,
+      responseData: projects,
+      responseMessage: CONST_STRINGS.DATA_FETCH_SUCCESS,
+    };
+
+    next();
+  } catch (err) {
+    console.error("Error in getAllProjectsInOrganization:", err);
+    req.err = err;
+    next(err);
+  }
+};
+
 export const getDashboardDetails = async (req, res, next) => {
   try {
     req.data = { endpoint: "getDashboardDetails" };

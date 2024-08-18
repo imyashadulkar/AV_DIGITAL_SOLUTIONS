@@ -112,6 +112,7 @@ export const BASE_ROUTES = {
   LOG_ROUTES: "/logs",
   APP_APIS: "/crm",
   CHAT_ROUTES: "/chat",
+  FETCH_ROUTES: "/fetch",
 };
 
 export const MODULE_ROUTES = {
@@ -131,6 +132,7 @@ export const MODULE_ROUTES = {
   CHANGE_USER_ROLE_IN_PROJECT: "/change-user-role-in-project",
   CHANGE_PROJECT_AND_ROLE: "/change-project-and-role",
   GET_ALL_USER_IN_PROJECT: "/get-all-user-in-project",
+  GET_PROJECTS_IN_ORGANIZATION: "/get-projects-in-organization",
 };
 
 export const ADMIN_ROUTES = {
