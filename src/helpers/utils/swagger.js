@@ -24,7 +24,7 @@ const swaggerOptions = {
           ]
         : [
             {
-              url: `https://av-digital-solutions.onrender.com/${BASE_URL}/${VERSION}`,
+              url: `https://av-digital-solutions-1.onrender.com/${BASE_URL}/${VERSION}`,
               description: "Deployed server, Version: V1",
             },
           ]),

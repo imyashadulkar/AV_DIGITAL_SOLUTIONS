@@ -83,7 +83,7 @@ if (!ENV_VAR.UNIT_TEST) {
   if (ENV_VAR.ENV === "local") {
     serverUrl = `http://localhost:${ENV_VAR.PORT}`;
   } else {
-    serverUrl = `https://av-digital-solutions.onrender.com`;
+    serverUrl = `https://av-digital-solutions-1.onrender.com`;
   }
 
   mongoose
