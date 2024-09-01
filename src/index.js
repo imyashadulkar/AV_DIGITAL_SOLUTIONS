@@ -16,7 +16,7 @@ import {startLeadScheduler} from "./middleware/lead_scheduler.js"
 
 // Import Environment Variables
 import { ENV_VAR } from "./helpers/env.js";
-const { BASE_URL, VERSION, PORT, ALLOWED_ORIGINS } = ENV_VAR;
+const { BASE_URL, VERSION, PORT } = ENV_VAR;
 
 // Create a new Express app instance
 const app = express();
@@ -36,27 +36,30 @@ app.use(
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Enable CORS for allowed origins
+// Ensure ALLOWED_ORIGINS is an array
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS.split(',');
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl requests for non prod)
+      // Allow requests with no origin (like mobile apps or curl requests for non-prod environments)
       if (!origin) {
-        if (ENV_VAR.ENV === "PROD") {
-          // throw new Error("You are not authorized to access this resource.");
-          return callback(null, true);
+        if (process.env.ENV === "PROD") {
+          return callback(new Error("Not authorized by CORS"), false);
         } else {
           return callback(null, true);
         }
       }
-      // Check if the origin is allowed
-      if (ALLOWED_ORIGINS.includes(origin) === -1) {
-        // If the origin is not allowed, set the Access-Control-Allow-Origin header to null
-        return callback(null, false);
+
+      // Check if the origin is in the allowed list
+      if (!ALLOWED_ORIGINS.includes(origin)) {
+        return callback(new Error("Not allowed by CORS"), false);
       }
-      // If the origin is allowed, set the Access-Control-Allow-Origin header to the origin and continue with the request
+
+      // If the origin is allowed, continue with the request
       return callback(null, true);
     },
-    credentials: true, // Set to allow credentials in the request
+    credentials: true, // Allow credentials in requests
   })
 );
 // Set the Base Url for the app
