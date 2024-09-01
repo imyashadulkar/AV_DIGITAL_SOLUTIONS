@@ -29,6 +29,16 @@ const projectSchema = new mongoose.Schema(
       required: true,
     },
     subUsers: [userRoleSchema],
+    facebookCredentials: {
+      pageId: {
+        type: String,
+        required: true,
+      },
+      accessToken: {
+        type: String,
+        required: true,
+      },
+    },
   },
   {
     _id: false,

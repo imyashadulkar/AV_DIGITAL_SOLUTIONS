@@ -133,6 +133,7 @@ export const MODULE_ROUTES = {
   CHANGE_PROJECT_AND_ROLE: "/change-project-and-role",
   GET_ALL_USER_IN_PROJECT: "/get-all-user-in-project",
   GET_PROJECTS_IN_ORGANIZATION: "/get-projects-in-organization",
+  POST_FACEBOOK_CREDENTIALS: "/facebook/credentials",
 };
 
 export const ADMIN_ROUTES = {

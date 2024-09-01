@@ -16,6 +16,7 @@ import {
   getAllUserInProject,
   getDashboardDetails,
   getProjectDetails,
+  postFacebookCredentials,
 } from "../controllers/organization/project.js";
 
 const router = express.Router();
@@ -852,6 +853,77 @@ router.get(
   MODULE_ROUTES.GET_DASHBOARD_DETAILS,
   verifyToken,
   getDashboardDetails,
+  successResponse
+);
+
+/**
+ * @swagger
+ * /module/facebook/credentials:
+ *   post:
+ *     summary: Post Facebook credentials for a project within an organization.
+ *     description: This endpoint allows posting Facebook credentials for a specific project within an organization.
+ *     tags:
+ *       - Facebook
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               organizationId:
+ *                 type: string
+ *                 description: The unique ID of the organization.
+ *                 example: "org123"
+ *               projectId:
+ *                 type: string
+ *                 description: The unique ID of the project within the organization.
+ *                 example: "proj456"
+ *               credentials:
+ *                 type: object
+ *                 description: Facebook credentials object.
+ *                 properties:
+ *                   appId:
+ *                     type: string
+ *                     description: The Facebook App ID.
+ *                     example: "your_facebook_app_id"
+ *                   appSecret:
+ *                     type: string
+ *                     description: The Facebook App Secret.
+ *                     example: "your_facebook_app_secret"
+ *                   accessToken:
+ *                     type: string
+ *                     description: The Facebook Access Token.
+ *                     example: "your_facebook_access_token"
+ *     responses:
+ *       200:
+ *         description: Successfully saved Facebook credentials.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statuscode:
+ *                   type: integer
+ *                   example: 200
+ *                 responseData:
+ *                   type: object
+ *                   description: The updated organization object with the new Facebook credentials.
+ *                 responseMessage:
+ *                   type: string
+ *                   example: "Data saved successfully."
+ *       400:
+ *         description: Bad request, likely due to missing or incorrect parameters.
+ *       404:
+ *         description: Organization or project not found.
+ *       500:
+ *         description: Internal server error.
+ */
+
+router.post(
+  MODULE_ROUTES.POST_FACEBOOK_CREDENTIALS,
+  verifyToken,
+  postFacebookCredentials,
   successResponse
 );
 

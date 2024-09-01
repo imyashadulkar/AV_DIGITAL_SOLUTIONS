@@ -406,3 +406,64 @@ export const getDashboardDetails = async (req, res, next) => {
     next(err);
   }
 };
+
+export const postFacebookCredentials = async (req, next) => {
+  try {
+    req.data = { endpoint: "postFacebookCredentials" };
+
+    const { organizationId, projectId, credentials } = req.body;
+
+    // Validate incoming data
+    if (!organizationId || !projectId || !credentials) {
+      throw new Error(CONST_STRINGS.INVALID_REQUEST_DATA);
+    }
+
+    // Find organization by ID
+    const organization = await Organization.findOne({ organizationId });
+    if (!organization) {
+      throw new Error(CONST_STRINGS.ORGANIZATION_NOT_FOUND);
+    }
+
+    console.log("Organization found:", organization);
+
+    // Ensure projects array is valid
+    if (!Array.isArray(organization.projects)) {
+      throw new Error(CONST_STRINGS.PROJECTS_ARRAY_NOT_FOUND);
+    }
+
+    // Log the projects array
+    console.log('Projects Array:', organization.projects);
+
+    // Find project by projectId
+    const project = organization.projects.find(
+      (project) => project.projectId === projectId
+    );
+
+    // Check if the project was found
+    if (!project) {
+      throw new Error(CONST_STRINGS.PROJECT_NOT_FOUND);
+    }
+
+    // Log the found project for debugging
+    console.log('Project found:', project);
+
+    // Assign Facebook credentials to the project
+    project.facebookCredentials = credentials;
+
+    // Save the updated organization document
+    const updatedOrganization = await organization.save();
+
+    // Return a successful response
+    req.data = {
+      statusCode: 200,
+      responseData: updatedOrganization,
+      responseMessage: CONST_STRINGS.DATA_SAVE_SUCCESS,
+    };
+
+    next();
+  } catch (err) {
+    console.error("Error in postFacebookCredentials:", err);
+    req.err = err;
+  }
+};
+

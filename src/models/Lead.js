@@ -14,6 +14,10 @@ const leadSchema = new mongoose.Schema(
       type: String,
       enum: [
         "Qualified",
+        "Not-qualified",
+        "Not-Qualified",
+        "Contacted",
+        "Not Qualified",
         "Not qualified",
         "Unread",
         "Intake",
