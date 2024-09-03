@@ -41,24 +41,7 @@ const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS.split(',');
 
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl requests for non-prod environments)
-      if (!origin) {
-        if (process.env.ENV === "PROD") {
-          return callback(new Error("Not authorized by CORS"), false);
-        } else {
-          return callback(null, true);
-        }
-      }
-
-      // Check if the origin is in the allowed list
-      if (!ALLOWED_ORIGINS.includes(origin)) {
-        return callback(new Error("Not allowed by CORS"), false);
-      }
-
-      // If the origin is allowed, continue with the request
-      return callback(null, true);
-    },
+    origin: "*",
     credentials: true, // Allow credentials in requests
   })
 );
