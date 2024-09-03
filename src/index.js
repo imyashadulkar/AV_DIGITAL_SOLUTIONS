@@ -39,12 +39,31 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 // Ensure ALLOWED_ORIGINS is an array
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS.split(',');
 
+const ALLOWED_ORIGINS = [
+  "http://localhost:3000",
+  "http://localhost:80",
+  "http://localhost:5173",
+  "https://avdigital-crm.web.app",
+];
+
 app.use(
   cors({
-    origin: "*",
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+
+      if (ALLOWED_ORIGINS.indexOf(origin) !== -1) {
+        // If the origin is in the allowed list, allow the request
+        callback(null, true);
+      } else {
+        // Otherwise, block it
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true, // Allow credentials in requests
   })
 );
+
 // Set the Base Url for the app
 app.use(`/${ENV_VAR.BASE_URL}/v1`, allRoutes);
 
