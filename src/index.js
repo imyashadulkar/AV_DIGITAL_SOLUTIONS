@@ -37,7 +37,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Enable CORS for allowed origins
 // Ensure ALLOWED_ORIGINS is an array
-const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS.split(',');
+// const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS.split(',');
 
 const ALLOWED_ORIGINS = [
   "http://localhost:3000",
