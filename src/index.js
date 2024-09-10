@@ -12,7 +12,7 @@ import { swaggerDocs } from "./helpers/utils/swagger.js";
 // Import local modules
 import allRoutes from "./routes/index.js";
 import logger from "./helpers/logger.js";
-import {startLeadScheduler} from "./middleware/lead_scheduler.js"
+import { startLeadScheduler } from "./middleware/lead_scheduler.js";
 
 // Import Environment Variables
 import { ENV_VAR } from "./helpers/env.js";
@@ -30,15 +30,18 @@ app.use(cookieParser());
 app.use(
   fileUpload({
     useTempFiles: true,
-  })
+  }),
 );
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Enable CORS for allowed origins
 // Ensure ALLOWED_ORIGINS is an array
-const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS.split(',');
-
+//
+//
+console.log(process.env.ALLOWED_ORIGINS);
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS.split(",");
+console.log(ALLOWED_ORIGINS);
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -50,7 +53,7 @@ app.use(
           return callback(null, true);
         }
       }
-
+      console.log(origin, ALLOWED_ORIGINS.includes(origin));
       // Check if the origin is in the allowed list
       if (!ALLOWED_ORIGINS.includes(origin)) {
         return callback(new Error("Not allowed by CORS"), false);
@@ -60,7 +63,7 @@ app.use(
       return callback(null, true);
     },
     credentials: true, // Allow credentials in requests
-  })
+  }),
 );
 // Set the Base Url for the app
 app.use(`/${ENV_VAR.BASE_URL}/v1`, allRoutes);
